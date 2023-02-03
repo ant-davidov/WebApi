@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.DTOs;
 using WebApi.Entities;
@@ -9,43 +10,49 @@ namespace WebApi.Controllers
     public class AnimalTypesController :BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
-        public AnimalTypesController(IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        public AnimalTypesController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         [AllowAnonymous]
         [HttpGet("{id?}")]
-        public async Task<ActionResult<AnimalType>> GetById(int? id)
+        public async Task<ActionResult<AnimalTypeDTO>> GetById(int? id)
         {
             if (id == null || id <= 0) return BadRequest();
-            var account = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(id.Value);
-            if (account == null) return NotFound();
-            return account;
+            var type = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(id.Value);
+            if (type == null) return NotFound();
+            return _mapper.Map<AnimalTypeDTO>(type) ;
         }
         [HttpPost]
-        public async Task<ActionResult<AnimalType>> Add([FromBody] AnimalType type)
+        public async Task<ActionResult<AnimalTypeDTO>> Add([FromBody] AnimalTypeDTO type)
         {
             if (!ModelState.IsValid) return BadRequest();
-            if (await _unitOfWork.AnimalTypeRepository.TypeExists(type.Type)) return Conflict();
-            type.Id = 1;
-            _unitOfWork.AnimalTypeRepository.AddAnimalType(type);
+            type.Id = 0;
+            var tempAnimalType = _mapper.Map<AnimalType>(type);
+            var typeInList = new List<AnimalType> { tempAnimalType };
+            if (_unitOfWork.AnimalTypeRepository.AllTypesExists(typeInList)) return Conflict();
+            _unitOfWork.AnimalTypeRepository.AddAnimalType(_mapper.Map<AnimalType>(type));
             await _unitOfWork.Complete();
             return Created("./type",  await _unitOfWork.AnimalTypeRepository.GetAnimalTypeByTypeAsync(type.Type));
         }
 
         [HttpPut("{id?}")]
-        public async Task<ActionResult<AnimalType>> Update(int? id,[FromBody] AnimalType updateType)
+        public async Task<ActionResult<AnimalTypeDTO>> Update(int? id,[FromBody] AnimalTypeDTO updateType)
         {
             if (id == null || id <= 0) return BadRequest();
             if (!ModelState.IsValid) return BadRequest();
             var type = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(id.Value);
             if (null == type) return NotFound();
-            if (await _unitOfWork.AnimalTypeRepository.TypeExists(type.Type)) return Conflict();
+            var tempAnimalType = _mapper.Map<AnimalType>(type);
+            var typeInList = new List<AnimalType> { tempAnimalType };
+            if (_unitOfWork.AnimalTypeRepository.AllTypesExists(typeInList)) return Conflict();
             type.Type = updateType.Type;
             _unitOfWork.AnimalTypeRepository.UpdateAnimalType(type);
             await _unitOfWork.Complete();
-            return type;    
+            return _mapper.Map<AnimalTypeDTO>(type);    
         }
 
         [HttpDelete("{id?}")]

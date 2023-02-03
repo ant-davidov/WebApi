@@ -30,7 +30,7 @@ namespace WebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
             if(!await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(point.Latitude,point.Longitude))  return Conflict();
-            point.Id = 1;
+            point.Id = 0;
             _unitOfWork.LocationPointRepository.AddLocationPoint(point);
             await _unitOfWork.Complete();
             return Created("./locations", point);

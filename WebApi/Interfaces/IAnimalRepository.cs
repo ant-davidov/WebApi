@@ -6,7 +6,7 @@ namespace WebApi.Interfaces
 {
     public interface IAnimalRepository
     {
-        Task<Animal> GetAnimal(int id);
+        Task<Animal> GetAnimalAsync(int id);
         Task<PageList<Animal>> GetAnimalsWitsParamsAsync(AnimalParams accountParams);
         void AddAnimal(Animal animal);
         void Update(Animal animal);

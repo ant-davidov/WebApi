@@ -26,7 +26,7 @@ namespace WebApi.Controllers
             if(emailAuthorizedAccount != null) return Forbid();
             if (!ModelState.IsValid) return BadRequest();
             if (!await _unitOfWork.AccountRepository.EmailIsFree(account.Email)) return Conflict();
-            account.Id = 1;
+            account.Id = 0;
             _unitOfWork.AccountRepository.AddAccount(account);
             await _unitOfWork.Complete();
             var newAccount = await _unitOfWork.AccountRepository.GetAccountByEmailAndPasswordAsync(account.Email, account.Password);

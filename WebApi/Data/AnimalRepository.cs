@@ -25,7 +25,7 @@ namespace WebApi.Data
             _context.Animals.Remove(animal);
         }
 
-        public async Task<Animal> GetAnimal(int id)
+        public async Task<Animal> GetAnimalAsync(int id)
         {
             return await _context.Animals.FirstOrDefaultAsync(a => a.Id == id);
         }

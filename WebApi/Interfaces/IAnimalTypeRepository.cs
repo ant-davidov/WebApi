@@ -11,6 +11,6 @@ namespace WebApi.Interfaces
         Task<AnimalType> GetAnimalTypeByTypeAsync(string type);
         void UpdateAnimalType(AnimalType animalType);
         void DeleteAnimalType(AnimalType animalType);
-        Task<bool> TypeExists(string type);
+        bool AllTypesExists(IEnumerable<AnimalType> types);
     }
 }

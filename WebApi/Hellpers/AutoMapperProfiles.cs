@@ -9,7 +9,8 @@ namespace WebApi.Hellpers
         public AutoMapperProfiles()
         {
             CreateMap<Account, AccountDTO>();
-           
+            CreateMap<AnimalType, AnimalTypeDTO>();
+
         }
     }
 }

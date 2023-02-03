@@ -12,7 +12,7 @@ namespace WebApi.Entities
         [Required(AllowEmptyStrings = false)]
         public string LastName { get; set; }
         [Required(AllowEmptyStrings = false)]
-        public string Email { get => email; set => email = value?.ToLower(); }
+        public string Email { get => email; set => email = value?.ToLower().Trim(); }
         [Required(AllowEmptyStrings = false)]
         public string Password { get; set; }
     }

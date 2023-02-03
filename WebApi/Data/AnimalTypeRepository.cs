@@ -37,9 +37,11 @@ namespace WebApi.Data
         {
             _context.Entry(animalType).State = EntityState.Modified;
         }
-        public async Task<bool> TypeExists(string type)
+        public bool AllTypesExists(IEnumerable<AnimalType> types)
         {
-            return await _context.AnimalTypes.FirstOrDefaultAsync(a=> a.Type == type) != null;
+
+            //return  await _context.AnimalTypes.AnyAsync(a=> types.Any(t=> a.Type == t.Type));
+            return types.Any(t => _context.AnimalTypes.Find(t.Type) != null); 
         }
     }
 }

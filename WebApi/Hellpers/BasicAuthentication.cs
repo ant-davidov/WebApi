@@ -31,8 +31,8 @@ namespace WebApi.Hellpers
                 return AuthenticateResult.Fail("Parametr is empty");
 
             string[] array = credentials.Split(":");
-            string email = array[0];
-            string password = array[1];
+            string email = array[0].Trim();
+            string password = array[1].Trim();
             var user = await _unitOfWork.AccountRepository.GetAccountByEmailAndPasswordAsync(email, password);
             if (user == null) 
                 return AuthenticateResult.Fail("User or password invalid");
