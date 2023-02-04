@@ -7,7 +7,7 @@ using WebApi.Interfaces;
 
 namespace WebApi.Controllers
 {
-    [Authorize]
+   // [Authorize]
     public class LocationsController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;

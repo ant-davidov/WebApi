@@ -10,6 +10,7 @@ namespace WebApi.Hellpers
         {
             CreateMap<Account, AccountDTO>();
             CreateMap<AnimalType, AnimalTypeDTO>();
+            CreateMap<AnimalTypeDTO, AnimalType>();
 
         }
     }

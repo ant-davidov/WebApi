@@ -2,23 +2,23 @@
 using WebApi.Entities;
 using WebApi.Enums;
 
-namespace WebApi.DTOs
+namespace WebApi.DTOs.Animal
 {
     public class AddAnimalDTO
     {
         [Required, MinLength(1)]
-        public ICollection<AnimalType> AnimalTypes { get; set; }
-        [Range(0, float.PositiveInfinity)]
+        public ICollection<long> AnimalTypesId { get; set; }
+        [Range(float.Epsilon, float.PositiveInfinity)]
         public float Weight { get; set; }
-        [Range(0, float.PositiveInfinity)]
+        [Range(float.Epsilon, float.PositiveInfinity)]
         public float Lenght { get; set; }
-        [Range(0, float.PositiveInfinity)]
+        [Range(float.Epsilon, float.PositiveInfinity)]
         public float Height { get; set; }
         public GenderEnum Gender { get; set; }
         public DateTime ChippingDateTime { get; set; }
-        [MinLength(1)]
+        [Range(1, int.MaxValue)]
         public int ChipperId { get; set; }
-        [MinLength(1)]
-        public long ChippingLocationId { get; set; }     
+        [Range(1, long.MaxValue)]
+        public long ChippingLocationId { get; set; }
     }
 }

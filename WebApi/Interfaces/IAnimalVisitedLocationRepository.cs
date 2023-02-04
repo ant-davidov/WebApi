@@ -8,5 +8,7 @@ namespace WebApi.Interfaces
         Task<AnimalVisitedLocation> GetAnimalVisitedLocationRepositoryAsync(int id);
         void UpdateAnimalVisitedLocationRepository(AnimalVisitedLocation visitedLocation);
         void DeleteAnimalVisitedLocationRepository(AnimalVisitedLocation visitedLocation);
+
+       
     }
 }

@@ -7,10 +7,10 @@ namespace WebApi.Interfaces
     public interface IAnimalTypeRepository
     {
         void AddAnimalType(AnimalType animalType);
-        Task<AnimalType> GetAnimalTypeAsync(int id);
+        Task<AnimalType> GetAnimalTypeAsync(long id);
         Task<AnimalType> GetAnimalTypeByTypeAsync(string type);
         void UpdateAnimalType(AnimalType animalType);
         void DeleteAnimalType(AnimalType animalType);
-        bool AllTypesExists(IEnumerable<AnimalType> types);
+        bool AllTypesExistsById(IEnumerable<long> types);
     }
 }

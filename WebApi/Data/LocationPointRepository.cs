@@ -23,7 +23,7 @@ namespace WebApi.Data
           _context.LocationPoints.Remove(locationPoint);
         }
 
-        public async Task<LocationPoint> GetLocationPointAsync(int id)
+        public async Task<LocationPoint> GetLocationPointAsync(long id)
         {
            return await _context.LocationPoints.FirstOrDefaultAsync(x => x.Id == id);
         }

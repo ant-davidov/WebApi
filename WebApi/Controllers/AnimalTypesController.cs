@@ -27,13 +27,14 @@ namespace WebApi.Controllers
             return _mapper.Map<AnimalTypeDTO>(type) ;
         }
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult<AnimalTypeDTO>> Add([FromBody] AnimalTypeDTO type)
         {
             if (!ModelState.IsValid) return BadRequest();
             type.Id = 0;
             var tempAnimalType = _mapper.Map<AnimalType>(type);
-            var typeInList = new List<AnimalType> { tempAnimalType };
-            if (_unitOfWork.AnimalTypeRepository.AllTypesExists(typeInList)) return Conflict();
+            var typeInList = new List<long> { tempAnimalType.Id };
+            if (_unitOfWork.AnimalTypeRepository.AllTypesExistsById(typeInList)) return Conflict();
             _unitOfWork.AnimalTypeRepository.AddAnimalType(_mapper.Map<AnimalType>(type));
             await _unitOfWork.Complete();
             return Created("./type",  await _unitOfWork.AnimalTypeRepository.GetAnimalTypeByTypeAsync(type.Type));
@@ -47,8 +48,8 @@ namespace WebApi.Controllers
             var type = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(id.Value);
             if (null == type) return NotFound();
             var tempAnimalType = _mapper.Map<AnimalType>(type);
-            var typeInList = new List<AnimalType> { tempAnimalType };
-            if (_unitOfWork.AnimalTypeRepository.AllTypesExists(typeInList)) return Conflict();
+            var typeInList = new List<long> { tempAnimalType.Id };
+            if (_unitOfWork.AnimalTypeRepository.AllTypesExistsById(typeInList)) return Conflict();
             type.Type = updateType.Type;
             _unitOfWork.AnimalTypeRepository.UpdateAnimalType(type);
             await _unitOfWork.Complete();

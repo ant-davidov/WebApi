@@ -24,7 +24,7 @@ namespace WebApi.Data
             _context.AnimalTypes.Remove(animalType);
         }
 
-        public async Task<AnimalType> GetAnimalTypeAsync(int id)
+        public async Task<AnimalType> GetAnimalTypeAsync(long id)
         {
            return  await _context.AnimalTypes.FirstOrDefaultAsync(a => a.Id == id);
         }
@@ -37,11 +37,11 @@ namespace WebApi.Data
         {
             _context.Entry(animalType).State = EntityState.Modified;
         }
-        public bool AllTypesExists(IEnumerable<AnimalType> types)
+        public bool AllTypesExistsById(IEnumerable<long> types)
         {
 
             //return  await _context.AnimalTypes.AnyAsync(a=> types.Any(t=> a.Type == t.Type));
-            return types.Any(t => _context.AnimalTypes.Find(t.Type) != null); 
+            return types.All(t => _context.AnimalTypes.Any(a=> t == a.Id)); 
         }
     }
 }
