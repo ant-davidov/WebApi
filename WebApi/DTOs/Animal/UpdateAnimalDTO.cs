@@ -9,7 +9,7 @@ namespace WebApi.DTOs.Animal
         [Range(float.Epsilon, float.PositiveInfinity)]
         public float Weight { get; set; }
         [Range(float.Epsilon, float.PositiveInfinity)]
-        public float Lenght { get; set; }
+        public float Length { get; set; }
         [Range(float.Epsilon, float.PositiveInfinity)]
         public float Height { get; set; }
         public LifeStatusEnum LifeStatus { get; set; } 

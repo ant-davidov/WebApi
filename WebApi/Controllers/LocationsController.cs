@@ -7,7 +7,6 @@ using WebApi.Interfaces;
 
 namespace WebApi.Controllers
 {
-   // [Authorize]
     public class LocationsController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -16,7 +15,7 @@ namespace WebApi.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        [AllowAnonymous]
+
         [HttpGet("{id?}")]
         public async Task<ActionResult<LocationPoint>> GetById(int? id)
         {
@@ -51,7 +50,7 @@ namespace WebApi.Controllers
             return point;
         }
         [HttpDelete("{id?}")]
-        public async Task<ActionResult> Delete(int? id, [FromBody] LocationPoint updatePoint)
+        public async Task<ActionResult> Delete(int? id)
         {
             if (id == null || id <= 0) return BadRequest();
             if (!ModelState.IsValid) return BadRequest();

@@ -22,9 +22,9 @@ namespace WebApi.Data
            _context.AnimalVisitedLocations.Remove(visitedLocation);
         }
 
-        public async Task<AnimalVisitedLocation> GetAnimalVisitedLocationRepositoryAsync(int id)
+        public async Task<AnimalVisitedLocation> GetAnimalVisitedLocationRepositoryAsync(long id)
         {
-            return await _context.AnimalVisitedLocations.FirstOrDefaultAsync(x => x.Id == id);
+            return await _context.AnimalVisitedLocations.Include(p=>p.LocationPoint) .FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public void UpdateAnimalVisitedLocationRepository(AnimalVisitedLocation visitedLocation)

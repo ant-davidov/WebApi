@@ -41,7 +41,8 @@ namespace WebApi.Data
         {
 
             //return  await _context.AnimalTypes.AnyAsync(a=> types.Any(t=> a.Type == t.Type));
-            return types.All(t => _context.AnimalTypes.Any(a=> t == a.Id)); 
+            //return types.All(t => _context.AnimalTypes.Any(a=> t == a.Id)); 
+            return types.All(t=> _context.AnimalTypes.Any(a=> a.Id == t));
         }
     }
 }

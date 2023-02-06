@@ -44,7 +44,7 @@ namespace WebApi.Migrations
                 name: "LocationPoints",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Latitude = table.Column<double>(type: "REAL", nullable: false),
                     Longitude = table.Column<double>(type: "REAL", nullable: false)
@@ -52,6 +52,39 @@ namespace WebApi.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_LocationPoints", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Animals",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Weight = table.Column<float>(type: "REAL", nullable: false),
+                    Length = table.Column<float>(type: "REAL", nullable: false),
+                    Height = table.Column<float>(type: "REAL", nullable: false),
+                    Gender = table.Column<int>(type: "INTEGER", nullable: false),
+                    ChippingDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ChipperId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ChippingLocationId = table.Column<long>(type: "INTEGER", nullable: false),
+                    DeathDateTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LifeStatus = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Animals", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Animals_Accounts_ChipperId",
+                        column: x => x.ChipperId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Animals_LocationPoints_ChippingLocationId",
+                        column: x => x.ChippingLocationId,
+                        principalTable: "LocationPoints",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -70,37 +103,22 @@ namespace WebApi.Migrations
                         principalTable: "AnimalTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Animals",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Weight = table.Column<float>(type: "REAL", nullable: false),
-                    Lenght = table.Column<float>(type: "REAL", nullable: false),
-                    Height = table.Column<float>(type: "REAL", nullable: false),
-                    Gender = table.Column<int>(type: "INTEGER", nullable: false),
-                    ChippingDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ChipperId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ChippingLocationId = table.Column<int>(type: "INTEGER", nullable: false),
-                    DeathDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    LifeStatus = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Animals", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AnimalAnimalType_Animals_AnimalId",
+                        column: x => x.AnimalId,
+                        principalTable: "Animals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "AnimalVisitedLocations",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     DateTimeOfVisitLocationPoint = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    LocationPointId = table.Column<int>(type: "INTEGER", nullable: false),
+                    LocationPointId = table.Column<long>(type: "INTEGER", nullable: false),
                     AnimalId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
@@ -116,13 +134,18 @@ namespace WebApi.Migrations
                         column: x => x.LocationPointId,
                         principalTable: "LocationPoints",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AnimalAnimalType_AnimalTypesId",
                 table: "AnimalAnimalType",
                 column: "AnimalTypesId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Animals_ChipperId",
+                table: "Animals",
+                column: "ChipperId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Animals_ChippingLocationId",
@@ -138,36 +161,16 @@ namespace WebApi.Migrations
                 name: "IX_AnimalVisitedLocations_LocationPointId",
                 table: "AnimalVisitedLocations",
                 column: "LocationPointId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_AnimalAnimalType_Animals_AnimalId",
-                table: "AnimalAnimalType",
-                column: "AnimalId",
-                principalTable: "Animals",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Animals_AnimalVisitedLocations_ChippingLocationId",
-                table: "Animals",
-                column: "ChippingLocationId",
-                principalTable: "AnimalVisitedLocations",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_AnimalVisitedLocations_Animals_AnimalId",
-                table: "AnimalVisitedLocations");
-
-            migrationBuilder.DropTable(
-                name: "Accounts");
-
             migrationBuilder.DropTable(
                 name: "AnimalAnimalType");
+
+            migrationBuilder.DropTable(
+                name: "AnimalVisitedLocations");
 
             migrationBuilder.DropTable(
                 name: "AnimalTypes");
@@ -176,7 +179,7 @@ namespace WebApi.Migrations
                 name: "Animals");
 
             migrationBuilder.DropTable(
-                name: "AnimalVisitedLocations");
+                name: "Accounts");
 
             migrationBuilder.DropTable(
                 name: "LocationPoints");

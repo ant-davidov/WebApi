@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.DTOs;
 using WebApi.Entities;
+using WebApi.Hellpers;
 using WebApi.Interfaces;
 
 namespace WebApi.Controllers
 {   
+    [Route("animals/types")]
     public class AnimalTypesController :BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -17,7 +19,7 @@ namespace WebApi.Controllers
             _mapper = mapper;
         }
 
-        [AllowAnonymous]
+
         [HttpGet("{id?}")]
         public async Task<ActionResult<AnimalTypeDTO>> GetById(int? id)
         {
@@ -27,16 +29,16 @@ namespace WebApi.Controllers
             return _mapper.Map<AnimalTypeDTO>(type) ;
         }
         [HttpPost]
-        [AllowAnonymous]
+
+        
         public async Task<ActionResult<AnimalTypeDTO>> Add([FromBody] AnimalTypeDTO type)
         {
             if (!ModelState.IsValid) return BadRequest();
+            if (await _unitOfWork.AnimalTypeRepository.GetAnimalTypeByTypeAsync(type.Type) != null) return Conflict();
             type.Id = 0;
-            var tempAnimalType = _mapper.Map<AnimalType>(type);
-            var typeInList = new List<long> { tempAnimalType.Id };
-            if (_unitOfWork.AnimalTypeRepository.AllTypesExistsById(typeInList)) return Conflict();
             _unitOfWork.AnimalTypeRepository.AddAnimalType(_mapper.Map<AnimalType>(type));
             await _unitOfWork.Complete();
+            
             return Created("./type",  await _unitOfWork.AnimalTypeRepository.GetAnimalTypeByTypeAsync(type.Type));
         }
 
@@ -45,15 +47,14 @@ namespace WebApi.Controllers
         {
             if (id == null || id <= 0) return BadRequest();
             if (!ModelState.IsValid) return BadRequest();
-            var type = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(id.Value);
-            if (null == type) return NotFound();
-            var tempAnimalType = _mapper.Map<AnimalType>(type);
-            var typeInList = new List<long> { tempAnimalType.Id };
-            if (_unitOfWork.AnimalTypeRepository.AllTypesExistsById(typeInList)) return Conflict();
-            type.Type = updateType.Type;
-            _unitOfWork.AnimalTypeRepository.UpdateAnimalType(type);
+            var typeNow = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(id.Value);
+            if (null == typeNow) return NotFound();
+            if (typeNow.Type != updateType.Type)
+                if (await _unitOfWork.AnimalTypeRepository.GetAnimalTypeByTypeAsync(updateType.Type) != null) return Conflict();
+            typeNow.Type = updateType.Type;
+            _unitOfWork.AnimalTypeRepository.UpdateAnimalType(typeNow);
             await _unitOfWork.Complete();
-            return _mapper.Map<AnimalTypeDTO>(type);    
+            return _mapper.Map<AnimalTypeDTO>(typeNow);    
         }
 
         [HttpDelete("{id?}")]

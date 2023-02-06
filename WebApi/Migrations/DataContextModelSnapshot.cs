@@ -83,7 +83,7 @@ namespace WebApi.Migrations
                     b.Property<float>("Height")
                         .HasColumnType("REAL");
 
-                    b.Property<float>("Lenght")
+                    b.Property<float>("Length")
                         .HasColumnType("REAL");
 
                     b.Property<int>("LifeStatus")
@@ -118,7 +118,7 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("WebApi.Entities.AnimalVisitedLocation", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -177,13 +177,13 @@ namespace WebApi.Migrations
                     b.HasOne("WebApi.Entities.Account", "Chipper")
                         .WithMany()
                         .HasForeignKey("ChipperId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.HasOne("WebApi.Entities.LocationPoint", "ChippingLocation")
                         .WithMany()
                         .HasForeignKey("ChippingLocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("Chipper");
@@ -200,7 +200,7 @@ namespace WebApi.Migrations
                     b.HasOne("WebApi.Entities.LocationPoint", "LocationPoint")
                         .WithMany()
                         .HasForeignKey("LocationPointId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("LocationPoint");

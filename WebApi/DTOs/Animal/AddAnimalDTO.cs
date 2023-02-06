@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Runtime.Serialization;
 using WebApi.Entities;
 using WebApi.Enums;
 
@@ -7,11 +8,11 @@ namespace WebApi.DTOs.Animal
     public class AddAnimalDTO
     {
         [Required, MinLength(1)]
-        public ICollection<long> AnimalTypesId { get; set; }
+        public ICollection<long> AnimalTypes { get; set; }
         [Range(float.Epsilon, float.PositiveInfinity)]
         public float Weight { get; set; }
         [Range(float.Epsilon, float.PositiveInfinity)]
-        public float Lenght { get; set; }
+        public float Length { get; set; }
         [Range(float.Epsilon, float.PositiveInfinity)]
         public float Height { get; set; }
         public GenderEnum Gender { get; set; }

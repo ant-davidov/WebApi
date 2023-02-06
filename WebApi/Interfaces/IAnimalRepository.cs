@@ -8,8 +8,7 @@ namespace WebApi.Interfaces
     {
         Task<Animal> GetAnimalAsync(long id);
         Task<PageList<Animal>> GetAnimalsWitsParamsAsync(AnimalParams accountParams);
-        Task<PageList<AnimalVisitedLocation>> GetAnimalVisitedLocationsWitsParamsAsync(long id, VisitedLocationsParams locationsParams);
-        int AddAnimal(Animal animal);
+        long AddAnimal(Animal animal);
         void Update(Animal animal);
         void DeleteAnimal(Animal animal);
 

@@ -11,7 +11,7 @@ using WebApi.Data;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230202134840_InitialCreate")]
+    [Migration("20230206112010_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -74,10 +74,10 @@ namespace WebApi.Migrations
                     b.Property<DateTime>("ChippingDateTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ChippingLocationId")
+                    b.Property<long>("ChippingLocationId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("DeathDateTime")
+                    b.Property<DateTime?>("DeathDateTime")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Gender")
@@ -86,7 +86,7 @@ namespace WebApi.Migrations
                     b.Property<float>("Height")
                         .HasColumnType("REAL");
 
-                    b.Property<float>("Lenght")
+                    b.Property<float>("Length")
                         .HasColumnType("REAL");
 
                     b.Property<int>("LifeStatus")
@@ -96,6 +96,8 @@ namespace WebApi.Migrations
                         .HasColumnType("REAL");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ChipperId");
 
                     b.HasIndex("ChippingLocationId");
 
@@ -119,7 +121,7 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("WebApi.Entities.AnimalVisitedLocation", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -129,7 +131,7 @@ namespace WebApi.Migrations
                     b.Property<DateTime>("DateTimeOfVisitLocationPoint")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("LocationPointId")
+                    b.Property<long>("LocationPointId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -143,7 +145,7 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("WebApi.Entities.LocationPoint", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -175,11 +177,19 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("WebApi.Entities.Animal", b =>
                 {
-                    b.HasOne("WebApi.Entities.AnimalVisitedLocation", "ChippingLocation")
+                    b.HasOne("WebApi.Entities.Account", "Chipper")
+                        .WithMany()
+                        .HasForeignKey("ChipperId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Entities.LocationPoint", "ChippingLocation")
                         .WithMany()
                         .HasForeignKey("ChippingLocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
+
+                    b.Navigation("Chipper");
 
                     b.Navigation("ChippingLocation");
                 });
@@ -193,7 +203,7 @@ namespace WebApi.Migrations
                     b.HasOne("WebApi.Entities.LocationPoint", "LocationPoint")
                         .WithMany()
                         .HasForeignKey("LocationPointId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("LocationPoint");

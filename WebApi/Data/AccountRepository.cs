@@ -42,12 +42,11 @@ namespace WebApi.Data
         public async Task<PageList<AccountDTO>> GetAccountsWitsParamsAsync(AccountParams accountParams)
         {
             var query = _context.Accounts.AsQueryable();
-            query = query.Where(a => a.FirstName.IndexOf(accountParams.FirstName, StringComparison.OrdinalIgnoreCase) > 0);
-            query = query.Where(a => a.LastName.IndexOf(accountParams.LastName, StringComparison.OrdinalIgnoreCase) > 0);
-            query = query.Where(a => a.Email.IndexOf(accountParams.Email, StringComparison.OrdinalIgnoreCase) > 0);
+            if(accountParams.FirstName != null) query = query.Where(a=> a.FirstName.Trim().ToLower().Contains(accountParams.FirstName.Trim().ToLower()));
+            if(accountParams.LastName != null) query = query.Where(a => a.LastName.Trim().ToLower().Contains(accountParams.LastName.Trim().ToLower()));
+            if(accountParams.Email != null) query = query.Where(a => a.Email.Contains(accountParams.Email));
             query = query.OrderBy(a => a.Id);
-
-            return await  PageList<AccountDTO>.CreateAsync(query.ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).AsNoTracking(), accountParams.From, accountParams.Size);
+            return await PageList<AccountDTO>.CreateAsync(query.ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).AsNoTracking(), accountParams.From, accountParams.Size);
            
         }
 
