@@ -4,12 +4,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace WebApi.DTOs.VisitLocationDTO
+namespace WebApi.DTOs.Animal
 {
-    public class UpdateVisitedLoacationDTO
+    public class UpdateTypeInAnimals
     {   [Range(1, long.MaxValue)]
-        public long visitedLocationPointId {get; set;}
+        public long OldTypeId {get; set;}
         [Range(1, long.MaxValue)]
-        public long locationPointId {get; set;}
+        public long newTypeId {get; set;}
     }
 }

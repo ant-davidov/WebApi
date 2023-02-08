@@ -26,12 +26,13 @@ namespace WebApi.Data
 
         public async Task<AnimalType> GetAnimalTypeAsync(long id)
         {
-           return  await _context.AnimalTypes.FirstOrDefaultAsync(a => a.Id == id);
+           return await  _context.AnimalTypes.FirstOrDefaultAsync(a => a.Id == id);
         }
         public async Task<AnimalType> GetAnimalTypeByTypeAsync(string type)
         {
-            return await _context.AnimalTypes.FirstOrDefaultAsync(a => a.Type == type);
+            return  await _context.AnimalTypes.FirstOrDefaultAsync(a => a.Type == type.ToLower().Trim());
         }
+        
 
         public void UpdateAnimalType(AnimalType animalType)
         {
@@ -39,10 +40,12 @@ namespace WebApi.Data
         }
         public bool AllTypesExistsById(IEnumerable<long> types)
         {
-
-            //return  await _context.AnimalTypes.AnyAsync(a=> types.Any(t=> a.Type == t.Type));
-            //return types.All(t => _context.AnimalTypes.Any(a=> t == a.Id)); 
             return types.All(t=> _context.AnimalTypes.Any(a=> a.Id == t));
+        }
+
+        public async Task<bool> AnimalsExistAsync(long id)
+        {
+           return  await _context.Animals.Include(x=>x.AnimalTypes).AnyAsync(a=> a.AnimalTypes.Any(p=> p.Id == id));
         }
     }
 }

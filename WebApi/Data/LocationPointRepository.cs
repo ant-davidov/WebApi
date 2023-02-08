@@ -27,11 +27,21 @@ namespace WebApi.Data
         {
            return await _context.LocationPoints.FirstOrDefaultAsync(x => x.Id == id);
         }
-        public async Task<bool> CheckCordinatesAsync(double latitude, double longitude)
-        {
-            return await _context.LocationPoints.FirstOrDefaultAsync(x => x.Latitude == latitude && x.Longitude == longitude) == null ;
-        }
         
+        public async Task<bool> CheckCordinatesAsync(LocationPoint point)
+        {
+          return  await _context.LocationPoints.FirstOrDefaultAsync(x => x.Latitude == point.Latitude && x.Longitude == point.Longitude) == null;
+
+        }
+        public async Task<bool> VisitedLocationExistAsync(long id)
+        {
+           return await _context.Animals
+           .Include(p=>p.ChippingLocation)
+           .Include(p=> p.VisitedLocations)
+           .ThenInclude(p=> p.LocationPoint)
+           .AnyAsync(p=>p.ChippingLocation.Id == id || p.VisitedLocations.Any(x=> x.LocationPoint.Id == id));
+        }
+
 
         public void UpdateLocationPoint(LocationPoint locationPoint)
         {

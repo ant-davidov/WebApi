@@ -9,38 +9,41 @@ using WebApi.Entities;
 
 namespace WebApi.Hellpers
 {
-    public static class MapToReturnAnimal
-    {
-       public static ReturnAnimalDTO mapTo (Animal animal)
+    public  class MapToReturnAnimal
+
+    {    private Animal _animal;
+         private ReturnAnimalDTO animalDTO;
+        public MapToReturnAnimal(Animal animal)
         {
-            if ( animal == null ) return new ReturnAnimalDTO();
-             var animalDTO = new ReturnAnimalDTO
-            {
-                Id = animal.Id,
-                ChipperId = animal.Chipper.Id,
-                Weight = animal.Weight,
-                Length = animal.Length,
-                Height= animal.Height,
-                Gender = animal.Gender.ToString(),
-                LifeStatus = animal.LifeStatus.ToString(),
-                ChippingDateTime = mapDate(animal.ChippingDateTime),
-                ChippingLocationId = animal.ChippingLocation.Id,
-                DeathDateTime = mapDate(animal.DeathDateTime),
+            _animal = animal;
+            animalDTO = new ReturnAnimalDTO ();
+        }
+       public  ReturnAnimalDTO mapTo ()
+        {
+            if (  _animal == null ) return new ReturnAnimalDTO();
+           
+                animalDTO.Id = _animal.Id;
+                animalDTO.ChipperId = _animal.Chipper?.Id ?? -1;
+                animalDTO.Weight = _animal.Weight;
+                animalDTO.Length = _animal.Length;
+                animalDTO.Height= _animal.Height;
+                animalDTO.Gender = _animal.Gender.ToString();
+                animalDTO.LifeStatus = _animal.LifeStatus.ToString();
+                animalDTO.ChippingDateTime = _animal.ChippingDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+                animalDTO.ChippingLocationId = _animal.ChippingLocation?.Id ?? -1 ;
+                animalDTO.DeathDateTime = _animal.DeathDateTime?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
                // VisitedLocations = animal.VisitedLocations.Select(x=> x.LocationPoint.Id).ToList(),
-                AnimalTypes = animal.AnimalTypes?.Select(x=> x.Id).ToList()            
-            };
-            if(animal.VisitedLocations != null)
-               animalDTO.VisitedLocations = animal.VisitedLocations.Where(x=> x.LocationPoint != null).Select(y=> y.Id).ToList();
-            if(animalDTO.VisitedLocations?.Count() == 0)
-                animalDTO.VisitedLocations= null;
-            return animalDTO;
+               // AnimalTypes = animal.AnimalTypes?.Select(x=> x.Id).ToList()  
+               // VisitedLocations = animal.VisitedLocations.Select(x=> x.LocationPoint.Id).ToList(),
+              //  animalDTO.AnimalTypes = new List<int>() ;
+                return animalDTO;         
+            // if(animal.VisitedLocations != null)
+            //    animalDTO.VisitedLocations = animal.VisitedLocations.Where(x=> x.LocationPoint != null).Select(y=> y.Id).ToList();
+            // if(animalDTO.VisitedLocations?.Count() == 0)
+            //     animalDTO.VisitedLocations= null;
+            
         }
-        private static string mapDate(DateTime? d)
-        {
-            if(null == d )
-                return null;
-           return d?.ToUniversalTime().ToString("s") +"Z";
-        }
+       
     }
 
 }

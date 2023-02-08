@@ -63,5 +63,10 @@ namespace WebApi.Data
                 return false;
                     
         }
+        public async Task<bool> AnimalsExistAsync(long id)
+        {
+           return await _context.Animals.Include(p=>p.Chipper).AnyAsync(p=> p.Chipper.Id == id);
+        }
+         
     }
 }

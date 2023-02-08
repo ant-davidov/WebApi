@@ -45,6 +45,7 @@ namespace WebApi.Controllers
         [HttpGet("{id?}")]
         public async Task<ActionResult<AccountDTO>> GetById(int? id)
         {
+           
             if (id == null || id <= 0) return BadRequest();
             var account =  await _unitOfWork.AccountRepository.GetAccountAsync(id.Value);
             if (account == null) return NotFound();
@@ -81,6 +82,7 @@ namespace WebApi.Controllers
             if (account == null) return Forbid();
             var emailAuthorizedAccount = HttpContext.User.Identity.Name;
             if (emailAuthorizedAccount != account.Email) return Forbid();
+            if(await _unitOfWork.AccountRepository.AnimalsExistAsync(account.Id)) return BadRequest("There are animals");
             _unitOfWork.AccountRepository.DeleteAccount(account);
             await _unitOfWork.Complete();
             return Ok();

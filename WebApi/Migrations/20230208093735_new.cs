@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace WebApi.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class @new : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,12 +16,12 @@ namespace WebApi.Migrations
                 name: "Accounts",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    FirstName = table.Column<string>(type: "TEXT", nullable: false),
-                    LastName = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    Password = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    FirstName = table.Column<string>(type: "text", nullable: false),
+                    LastName = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    Password = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -31,9 +32,9 @@ namespace WebApi.Migrations
                 name: "AnimalTypes",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Type = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Type = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -44,10 +45,10 @@ namespace WebApi.Migrations
                 name: "LocationPoints",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Latitude = table.Column<double>(type: "REAL", nullable: false),
-                    Longitude = table.Column<double>(type: "REAL", nullable: false)
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Latitude = table.Column<double>(type: "double precision", nullable: false),
+                    Longitude = table.Column<double>(type: "double precision", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -58,17 +59,17 @@ namespace WebApi.Migrations
                 name: "Animals",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Weight = table.Column<float>(type: "REAL", nullable: false),
-                    Length = table.Column<float>(type: "REAL", nullable: false),
-                    Height = table.Column<float>(type: "REAL", nullable: false),
-                    Gender = table.Column<int>(type: "INTEGER", nullable: false),
-                    ChippingDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ChipperId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ChippingLocationId = table.Column<long>(type: "INTEGER", nullable: false),
-                    DeathDateTime = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LifeStatus = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Weight = table.Column<float>(type: "real", nullable: false),
+                    Length = table.Column<float>(type: "real", nullable: false),
+                    Height = table.Column<float>(type: "real", nullable: false),
+                    Gender = table.Column<int>(type: "integer", nullable: false),
+                    ChippingDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ChipperId = table.Column<int>(type: "integer", nullable: true),
+                    ChippingLocationId = table.Column<long>(type: "bigint", nullable: true),
+                    DeathDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LifeStatus = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -91,8 +92,8 @@ namespace WebApi.Migrations
                 name: "AnimalAnimalType",
                 columns: table => new
                 {
-                    AnimalId = table.Column<int>(type: "INTEGER", nullable: false),
-                    AnimalTypesId = table.Column<int>(type: "INTEGER", nullable: false)
+                    AnimalId = table.Column<int>(type: "integer", nullable: false),
+                    AnimalTypesId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -115,11 +116,11 @@ namespace WebApi.Migrations
                 name: "AnimalVisitedLocations",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DateTimeOfVisitLocationPoint = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    LocationPointId = table.Column<long>(type: "INTEGER", nullable: false),
-                    AnimalId = table.Column<int>(type: "INTEGER", nullable: true)
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    DateTimeOfVisitLocationPoint = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LocationPointId = table.Column<long>(type: "bigint", nullable: true),
+                    AnimalId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {

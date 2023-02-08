@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Text.Json;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.DTOs.Animal;
 using WebApi.Entities;
@@ -10,68 +12,68 @@ namespace WebApi.Controllers
     public class AnimalsController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
-        public AnimalsController(IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        public AnimalsController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         [HttpGet("{id?}")]
         public async Task<ActionResult<ReturnAnimalDTO>> GetById(int? id)
         {
+        
             if (id == null || id <= 0) return BadRequest();
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (null == animal) return NotFound();
-            var animalDTO = MapToReturnAnimal.mapTo(animal);
+            var animalDTO = _mapper.Map<ReturnAnimalDTO>(animal);
             return animalDTO;
-           
+        
         }
 
 
         [HttpGet("[action]")]
         public async Task<ActionResult<IEnumerable<ReturnAnimalDTO>>> Search([FromQuery] AnimalParams animalParams)
         {
-            try{
-           // if (animalParams.ChipperId <= 0 || animalParams.ChippingLocationId <= 0 || null == animalParams.LifeStatus || null == animalParams.Gender) return BadRequest();
+            
             var animals =  await _unitOfWork.AnimalRepository.GetAnimalsWitsParamsAsync(animalParams);
             if(null == animals || animals.Count() < 1) return new List<ReturnAnimalDTO>();
-            var  animalsDTO = new List<ReturnAnimalDTO>();
+            var  animalsDTO = new List<ReturnAnimalDTO>();   
             foreach (var i in animals)
-                animalsDTO.Add(MapToReturnAnimal.mapTo(i));
+              animalsDTO.Add(_mapper.Map<ReturnAnimalDTO>(i)); 
             return animalsDTO;
-            }
-            catch (Exception e)
-            {
-              return  Ok(e.Data.ToString()+ " " + e.ToString()+ " " + e.Message);
-            }
+            
+            
 
         }
         [HttpPost]
         public async Task<ActionResult<ReturnAnimalDTO>> Add([FromBody] AddAnimalDTO addAnimalDTO)
         {
+            try{
             if (!ModelState.IsValid) return BadRequest("Invalid data");
             if (addAnimalDTO.AnimalTypes.Any(x => x <= 0)) return BadRequest("Type id less than 1");
-            if (!_unitOfWork.AnimalTypeRepository.AllTypesExistsById(addAnimalDTO.AnimalTypes)) return BadRequest("One or more types of animals do not exist");
+            if (!_unitOfWork.AnimalTypeRepository.AllTypesExistsById(addAnimalDTO.AnimalTypes)) return NotFound("One or more types of animals do not exist");
             var account = await _unitOfWork.AccountRepository.GetAccountAsync(addAnimalDTO.ChipperId);
             if (account == null) return NotFound("An account with this ID was not found");
             var location = await _unitOfWork.LocationPointRepository.GetLocationPointAsync(addAnimalDTO.ChippingLocationId);
             if (location == null) return NotFound("There is no location with this id");
-            var animal = new Animal();
-            animal.Weight = addAnimalDTO.Weight;
-            animal.Height = addAnimalDTO.Height;
-            animal.Length = addAnimalDTO.Length;
-            var b = await Task.WhenAll(addAnimalDTO.AnimalTypes.Select(async x => await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(x)));
-            animal.Gender = addAnimalDTO.Gender;
+            var animal = _mapper.Map<Animal>(addAnimalDTO);
+            var types = addAnimalDTO.AnimalTypes.Select( x =>  _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(x).Result);  
             animal.ChippingLocation = location;
             animal.Chipper = account;
-            animal.ChippingDateTime = DateTime.UtcNow;
-            animal.AnimalTypes = b.ToList();
-            var id = _unitOfWork.AnimalRepository.AddAnimal(animal);
-            await _unitOfWork.Complete();
-            var animalDTO = MapToReturnAnimal.mapTo(animal);
-            
+            animal.AnimalTypes = types.ToList();
+            _unitOfWork.AnimalRepository.AddAnimal(animal);
+            await _unitOfWork.Complete();          
+            var animalDTO = _mapper.Map<ReturnAnimalDTO>(animal);   
             return Created("./add", animalDTO);
-            // save
+            }
+            catch (Exception e)
+            {
+                return Ok(e.ToString() + " " + e.Data.ToString() + e.Message);
+            }
         }
+             
+        
         [HttpPut("{id?}")]
         public async Task<ActionResult<ReturnAnimalDTO>> Update(int? id,[FromBody] UpdateAnimalDTO updateAnimalDTO)
         {
@@ -83,16 +85,20 @@ namespace WebApi.Controllers
             if (account == null) return NotFound("An account with this id was not found");
             var location = await _unitOfWork.LocationPointRepository.GetLocationPointAsync(updateAnimalDTO.ChippingLocationId);
             if (location == null) return NotFound("There is no location with this id");
-            animal.Weight = updateAnimalDTO.Weight;
-            animal.Height = updateAnimalDTO.Height;
-            animal.Length = updateAnimalDTO.Length;
-            animal.Gender = updateAnimalDTO.Gender;
-            animal.LifeStatus = updateAnimalDTO.LifeStatus;
+            var visitedPoint = animal.VisitedLocations;
+            if(visitedPoint != null && visitedPoint.Count() > 0)
+            {
+                var first = visitedPoint.FirstOrDefault();
+                if(first!= null) 
+                    if(first.LocationPoint.Id == updateAnimalDTO.ChippingLocationId)
+                        return BadRequest("установка chippingLocationId на первую посещённыею точку");
+            }
             animal.ChippingLocation = location;
             animal.Chipper = account;
+            _mapper.Map<UpdateAnimalDTO, Animal>( updateAnimalDTO, animal);
             _unitOfWork.AnimalRepository.Update(animal);
             await _unitOfWork.Complete();
-            var animalDTO = MapToReturnAnimal.mapTo(animal);
+            var animalDTO = _mapper.Map<ReturnAnimalDTO>(animal);
             return Ok(animalDTO);
            
         }
@@ -102,10 +108,13 @@ namespace WebApi.Controllers
             if (id == null || id <= 0) return BadRequest("Invalid id");
             if (!ModelState.IsValid) return BadRequest("Invalid data");
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
-            if (null == animal) return NotFound("Animal not found");
-            if (null != animal.VisitedLocations) return BadRequest("Has visiting points");
+            if (null == animal) return NotFound("Animal not found");   
+            if (null != animal.VisitedLocations && animal.VisitedLocations.Count() > 0 
+                            &&animal.VisitedLocations.FirstOrDefault()?.LocationPoint.Id != animal.ChippingLocation.Id) 
+                return BadRequest();
             _unitOfWork.AnimalRepository.DeleteAnimal(animal);
             await _unitOfWork.Complete();
+            
             return Ok();         
         }
 
@@ -120,23 +129,24 @@ namespace WebApi.Controllers
             animal.AnimalTypes.Add(type);
             _unitOfWork.AnimalRepository.Update(animal);
             await _unitOfWork.Complete();
-             var animalDTO = MapToReturnAnimal.mapTo(animal);
-            return Ok(animalDTO);
+            var animalDTO = _mapper.Map<ReturnAnimalDTO>(animal);
+            return Created("./add",animalDTO);
         }
         [HttpPut("{id?}/types")]
-        public async Task<ActionResult<ReturnAnimalDTO>> UpdateType(long? id,[FromBody] long? oldTypeId,  long? newTypeId)
+        public async Task<ActionResult<ReturnAnimalDTO>> UpdateType(long? id,[FromBody] UpdateTypeInAnimals updateTypeInAnimals)
         {
-            if (id == null || id <= 0 || oldTypeId == null || oldTypeId <= 0 || newTypeId == null || newTypeId <= 0) return BadRequest("Invalid id");
+            if (id == null || id <= 0 ) return BadRequest("Invalid id");
+            if(!ModelState.IsValid) return BadRequest("Invalid data");
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (null == animal) return NotFound("Animal not found");
-            if (animal.AnimalTypes.FirstOrDefault(x => x.Id == oldTypeId.Value) == null) return BadRequest("The animal does not have the old type with this id");
-            var oldType = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(oldTypeId.Value);
-            //if (null == oldType) return BadRequest("Old type has a invalid id");
-            if (animal.AnimalTypes.FirstOrDefault(x => x.Id == newTypeId.Value) != null) return Conflict("The new type is already there");
-            var newType = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(newTypeId.Value);
+            if (animal.AnimalTypes.FirstOrDefault(x => x.Id == updateTypeInAnimals.OldTypeId) == null) return NotFound("The animal does not have the old type with this id");
+            var oldType = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(updateTypeInAnimals.OldTypeId);
+            if (animal.AnimalTypes.FirstOrDefault(x => x.Id == updateTypeInAnimals.newTypeId) != null) return Conflict("The new type is already there");
+            var newType = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(updateTypeInAnimals.newTypeId);
+            if(null == newType) return NotFound("Not found new type");
             animal.AnimalTypes.Add(newType);
             animal.AnimalTypes.Remove(oldType);
-            var animalDTO = MapToReturnAnimal.mapTo(animal);
+            var animalDTO = _mapper.Map<ReturnAnimalDTO>(animal);
             return Ok(animalDTO);
         }
         [HttpDelete("{id?}/types/{typeId}")]
@@ -148,11 +158,12 @@ namespace WebApi.Controllers
             if (animal.AnimalTypes.Count == 1 && animal.AnimalTypes.All(x => x.Id == typeId)) return BadRequest("This is the only type");
             if (!animal.AnimalTypes.Any(x => x.Id == typeId.Value)) return NotFound("An animal with animalId does not have a type with typeId");
             var type = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(typeId.Value);
-            if (null == type) return NotFound("Type not found"); // нужно ли это
+            if (null == type) return NotFound("Type not found"); 
             animal.AnimalTypes.Remove(type);
             _unitOfWork.AnimalRepository.Update(animal);
             await _unitOfWork.Complete();
-            return MapToReturnAnimal.mapTo(animal);
+            var animalDTO = _mapper.Map<ReturnAnimalDTO>(animal);
+            return animalDTO;
         }
 
 

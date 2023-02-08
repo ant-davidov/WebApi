@@ -39,7 +39,7 @@ namespace WebApi.Controllers
             _unitOfWork.AnimalTypeRepository.AddAnimalType(_mapper.Map<AnimalType>(type));
             await _unitOfWork.Complete();
             
-            return Created("./type",  await _unitOfWork.AnimalTypeRepository.GetAnimalTypeByTypeAsync(type.Type));
+            return Created("./type", await _unitOfWork.AnimalTypeRepository.GetAnimalTypeByTypeAsync(type.Type));
         }
 
         [HttpPut("{id?}")]
@@ -63,6 +63,7 @@ namespace WebApi.Controllers
             if (id == null || id <= 0) return BadRequest();
             var type = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(id.Value);
             if (null == type) return NotFound();
+            if(await _unitOfWork.AnimalTypeRepository.AnimalsExistAsync(type.Id)) return  BadRequest("There are animals");
             _unitOfWork.AnimalTypeRepository.DeleteAnimalType(type);
             await _unitOfWork.Complete();
             return Ok();

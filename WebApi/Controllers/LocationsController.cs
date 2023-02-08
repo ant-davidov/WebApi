@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.DTOs;
+using System.Text.Json;
 using WebApi.Entities;
 using WebApi.Interfaces;
 
@@ -28,7 +29,7 @@ namespace WebApi.Controllers
         public async Task<ActionResult<LocationPoint>> Add([FromBody] LocationPoint point)
         {
             if (!ModelState.IsValid) return BadRequest();
-            if(!await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(point.Latitude,point.Longitude))  return Conflict();
+            if(!_unitOfWork.LocationPointRepository.CheckCordinatesAsync(point).Result)  return Conflict(JsonSerializer.Serialize(point));
             point.Id = 0;
             _unitOfWork.LocationPointRepository.AddLocationPoint(point);
             await _unitOfWork.Complete();
@@ -42,7 +43,7 @@ namespace WebApi.Controllers
             if (!ModelState.IsValid) return BadRequest();
             var point = await _unitOfWork.LocationPointRepository.GetLocationPointAsync(id.Value);
             if(null == point) return NotFound();
-            if (!await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(updatePoint.Latitude, updatePoint.Longitude)) return Conflict();
+            if (!await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(updatePoint)) return Conflict();
             point.Latitude = updatePoint.Latitude;
             point.Longitude = updatePoint.Longitude;
             _unitOfWork.LocationPointRepository.UpdateLocationPoint(point);
@@ -56,6 +57,7 @@ namespace WebApi.Controllers
             if (!ModelState.IsValid) return BadRequest();
             var point = await _unitOfWork.LocationPointRepository.GetLocationPointAsync(id.Value);
             if (null == point) return NotFound();
+            if(await _unitOfWork.LocationPointRepository.VisitedLocationExistAsync(point.Id))  return BadRequest("Have bisited point");
             _unitOfWork.LocationPointRepository.DeleteLocationPoint(point);
             await _unitOfWork.Complete();
             return Ok();

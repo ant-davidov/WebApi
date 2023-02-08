@@ -4,6 +4,7 @@ using WebApi.Entities;
 using WebApi.Hellpers;
 using WebApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace WebApi.Data
 {
@@ -15,10 +16,10 @@ namespace WebApi.Data
             _context = context;
         }
 
-        public long AddAnimal(Animal animal)
+        public void AddAnimal(Animal animal)
         {
            _context.Animals.Add(animal);
-           return animal.Id;
+         
         }
 
         public void DeleteAnimal(Animal animal)
@@ -27,23 +28,13 @@ namespace WebApi.Data
         }
 
         public async Task<Animal> GetAnimalAsync(long id)
-        {
-            return await _context.Animals.Include(x=> x.AnimalTypes)
-            .Include(x=> x.VisitedLocations)
-            .Include(x=>x.Chipper)
-            .Include(x=>x.ChippingLocation)
-            .FirstOrDefaultAsync(a => a.Id == id);
+        {   var query = GetAnumal();
+            return await query.FirstOrDefaultAsync(a => a.Id == id);
         }
        
         public async Task<PageList<Animal>> GetAnimalsWitsParamsAsync(AnimalParams animalParams)
         {
-            var query = _context.Animals
-            .Include(x=> x.AnimalTypes)
-            .Include(x=> x.VisitedLocations)
-            .ThenInclude(x=> x.LocationPoint)
-            .Include(x=>x.Chipper)
-            .Include(x=>x.ChippingLocation)
-            .AsQueryable();
+            var query = GetAnumal().AsQueryable();
             query = query.Where(a => DateTime.Compare(a.ChippingDateTime,animalParams.StartDateTime) >= 0);
             query = query.Where(a => DateTime.Compare(a.ChippingDateTime, animalParams.EndDateTime) <= 0);
             query = query.Where(a => animalParams.ChipperId == 0 || a.Chipper.Id == animalParams.ChipperId);
@@ -59,6 +50,18 @@ namespace WebApi.Data
         {
             _context.Entry(animal).State = EntityState.Modified;
         }
+        private IIncludableQueryable<Animal,Account> GetAnumal ()
+        {
+           return _context.Animals
+                    .Include(p=>p.AnimalTypes)
+                    .Include(p=>p.ChippingLocation)
+                    .Include(p=> p.VisitedLocations)
+                    .ThenInclude(x=> x.LocationPoint)
+                    .Include(p=>p.Chipper);
+                   
+        }
+        
+        
 
       
     }

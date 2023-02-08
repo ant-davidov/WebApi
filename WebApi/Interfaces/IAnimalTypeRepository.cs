@@ -12,5 +12,6 @@ namespace WebApi.Interfaces
         void UpdateAnimalType(AnimalType animalType);
         void DeleteAnimalType(AnimalType animalType);
         bool AllTypesExistsById(IEnumerable<long> types);
+        Task<bool> AnimalsExistAsync(long id);
     }
 }

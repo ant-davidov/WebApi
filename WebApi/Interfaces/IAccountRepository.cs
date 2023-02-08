@@ -12,6 +12,7 @@ namespace WebApi.Interfaces
         Task<Account> GetAccountByEmailAsync(string email);
         void UpdateAccount(Account account);
         void DeleteAccount(Account account);
+        Task<bool> AnimalsExistAsync(long id);
         Task<bool> EmailIsFree(string email);
         Task<PageList<AccountDTO>> GetAccountsWitsParamsAsync(AccountParams accountParams);
     }

@@ -6,7 +6,8 @@ namespace WebApi.Interfaces
     {
         void AddLocationPoint(LocationPoint locationPoint);
         Task<LocationPoint> GetLocationPointAsync(long id);
-        Task<bool> CheckCordinatesAsync(double latitude, double longitude);
+        Task<bool> CheckCordinatesAsync(LocationPoint point);
+        Task<bool> VisitedLocationExistAsync(long id);
         void UpdateLocationPoint(LocationPoint locationPoint);
         void DeleteLocationPoint(LocationPoint locationPoint);
     }

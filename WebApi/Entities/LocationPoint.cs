@@ -1,13 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace WebApi.Entities
 {
     public class LocationPoint
     {
         public long Id { get; set; }
-        [Range(-90.0, 90.0)]
+        [Range(-90F, 90F)]
         public double Latitude { get; set; }
-        [Range(-180.0, 180.0)]
+        [Range(-180F, 180F)]
         public double Longitude { get; set; }
     }
 }
