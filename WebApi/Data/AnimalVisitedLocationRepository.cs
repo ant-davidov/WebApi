@@ -1,7 +1,6 @@
 ﻿using WebApi.Entities;
 using WebApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Principal;
 
 namespace WebApi.Data
 {
@@ -12,20 +11,20 @@ namespace WebApi.Data
         {
             _context = context;
         }
-        public void AddAnimalVisitedLocationRepository(AnimalVisitedLocation visitedLocation)
-        {
-            _context.AnimalVisitedLocations.Add(visitedLocation);
-        }
+        // public void AddAnimalVisitedLocationRepository(AnimalVisitedLocation visitedLocation)
+        // {
+        //     _context.AnimalVisitedLocations.Add(visitedLocation);
+        // }
 
-        public void DeleteAnimalVisitedLocationRepository(AnimalVisitedLocation visitedLocation)
-        {
-           _context.AnimalVisitedLocations.Remove(visitedLocation);
-        }
+        // public void DeleteAnimalVisitedLocationRepository(AnimalVisitedLocation visitedLocation)
+        // {
+        //    _context.AnimalVisitedLocations.Remove(visitedLocation);
+        // }
 
-        public async Task<AnimalVisitedLocation> GetAnimalVisitedLocationRepositoryAsync(long id)
-        {
-            return await _context.AnimalVisitedLocations.Include(p=>p.LocationPoint) .FirstOrDefaultAsync(x => x.Id == id);
-        }
+        // public async Task<AnimalVisitedLocation> GetAnimalVisitedLocationRepositoryAsync(long id)
+        // {
+        //     return await _context.AnimalVisitedLocations.Include(p=>p.LocationPoint) .FirstOrDefaultAsync(x => x.Id == id);
+        // }
 
         public void UpdateAnimalVisitedLocationRepository(AnimalVisitedLocation visitedLocation)
         {

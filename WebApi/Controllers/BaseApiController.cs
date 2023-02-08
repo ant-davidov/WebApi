@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using WebApi.Hellpers.Filter;
 
 namespace WebApi.Controllers
 {
     [ApiController]
-    [Authorize]
+    [CustomAuthorize]
+    [ValidateModel]
     [Route("[controller]")]
     public class BaseApiController : ControllerBase
     {

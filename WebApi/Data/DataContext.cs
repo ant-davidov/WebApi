@@ -1,14 +1,10 @@
-﻿
-
-using WebApi.Entities;
+﻿using WebApi.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace WebApi.Data
 {
     public class DataContext : DbContext
-    {
-       
-
+    {    
         public DataContext(DbContextOptions<DataContext> options) : base(options) 
         {
                 Database.EnsureCreated();
@@ -26,14 +22,7 @@ namespace WebApi.Data
         modelBuilder.Entity<AnimalVisitedLocation>()
                 .HasOne(p=> p.LocationPoint)
                 .WithMany()
-                .OnDelete(DeleteBehavior.SetNull);
-              
-
-
-                
-                
-
-           
+                .OnDelete(DeleteBehavior.SetNull);      
         }
         public DbSet<Account> Accounts => Set<Account>();
         public DbSet<Animal> Animals => Set<Animal>();

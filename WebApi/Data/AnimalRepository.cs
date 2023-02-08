@@ -1,10 +1,9 @@
-﻿using AutoMapper.QueryableExtensions;
-using WebApi.DTOs;
-using WebApi.Entities;
+﻿using WebApi.Entities;
 using WebApi.Hellpers;
 using WebApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using WebApi.Hellpers.CreatePage;
 
 namespace WebApi.Data
 {
@@ -50,15 +49,14 @@ namespace WebApi.Data
         {
             _context.Entry(animal).State = EntityState.Modified;
         }
-        private IIncludableQueryable<Animal,Account> GetAnumal ()
+        private IIncludableQueryable<Animal,Account> GetAnumal()
         {
            return _context.Animals
                     .Include(p=>p.AnimalTypes)
                     .Include(p=>p.ChippingLocation)
                     .Include(p=> p.VisitedLocations)
                     .ThenInclude(x=> x.LocationPoint)
-                    .Include(p=>p.Chipper);
-                   
+                    .Include(p=>p.Chipper);            
         }
         
         

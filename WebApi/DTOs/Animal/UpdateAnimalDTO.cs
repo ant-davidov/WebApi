@@ -14,9 +14,10 @@ namespace WebApi.DTOs.Animal
         public float Height { get; set; }
         public LifeStatusEnum LifeStatus { get; set; }
         public GenderEnum Gender { get; set; }
-        public int ChipperId { get; set; }
         [Range(1, long.MaxValue)]
+        public int ChipperId { get; set; }    
         public DateTime? DeathDateTime { get; set; }
+        [Range(1, long.MaxValue)]
         public long ChippingLocationId { get; set; }
     }
 }

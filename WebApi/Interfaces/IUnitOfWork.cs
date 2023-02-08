@@ -8,6 +8,5 @@
         IAnimalVisitedLocationRepository AnimalVisitedLocationRepository { get; }
         ILocationPointRepository LocationPointRepository { get; }
         Task<bool> Complete();
-
     }
 }

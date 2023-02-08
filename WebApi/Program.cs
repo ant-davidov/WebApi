@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using WebApi.Data;
 using WebApi.Hellpers;
+using WebApi.Hellpers.Filter;
 using WebApi.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,8 +39,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
-
 app.MapControllers();
 
 app.Run();

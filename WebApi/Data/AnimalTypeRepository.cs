@@ -1,9 +1,6 @@
-﻿using AutoMapper;
-using WebApi.Entities;
+﻿using WebApi.Entities;
 using WebApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Principal;
-using System.Threading.Tasks;
 
 namespace WebApi.Data
 {

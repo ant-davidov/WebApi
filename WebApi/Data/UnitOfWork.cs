@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using WebApi.Entities;
 using WebApi.Interfaces;
 
 namespace WebApi.Data

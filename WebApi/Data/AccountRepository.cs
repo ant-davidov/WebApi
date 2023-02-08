@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using WebApi.DTOs;
 using WebApi.Entities;
 using WebApi.Hellpers;
+using WebApi.Hellpers.CreatePage;
 using WebApi.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace WebApi.Data
 {
@@ -26,10 +27,6 @@ namespace WebApi.Data
         {
             return await _context.Accounts.FirstOrDefaultAsync(a => a.Email == email && a.Password == password);
         }
-        public async Task<Account> GetAccountByEmailAsync(string email)
-        {
-            return await _context.Accounts.FirstOrDefaultAsync(a => a.Email == email);
-        }
         public void UpdateAccount(Account account)
         {
             _context.Entry(account).State = EntityState.Modified;
@@ -46,22 +43,14 @@ namespace WebApi.Data
             if(accountParams.LastName != null) query = query.Where(a => a.LastName.Trim().ToLower().Contains(accountParams.LastName.Trim().ToLower()));
             if(accountParams.Email != null) query = query.Where(a => a.Email.Contains(accountParams.Email));
             query = query.OrderBy(a => a.Id);
-            return await PageList<AccountDTO>.CreateAsync(query.ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).AsNoTracking(), accountParams.From, accountParams.Size);
-           
+            return await PageList<AccountDTO>.CreateAsync(query.ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).AsNoTracking(), accountParams.From, accountParams.Size); 
         }
 
-        public void AddAccount(Account account)
-        {
-           _context.Accounts.Add(account) ;
-        }
-
+        public void AddAccount(Account account) => _context.Accounts.Add(account);
+        
         public async Task<bool> EmailIsFree(string email)
         {
-            if (await _context.Accounts.FirstOrDefaultAsync(a => a.Email == email) == null)
-                return true;
-            else
-                return false;
-                    
+            return !await _context.Accounts.AnyAsync(a => a.Email == email);             
         }
         public async Task<bool> AnimalsExistAsync(long id)
         {

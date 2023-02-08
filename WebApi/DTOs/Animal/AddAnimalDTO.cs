@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
-using WebApi.Entities;
 using WebApi.Enums;
 
 namespace WebApi.DTOs.Animal

@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using WebApi.Enums;
-
 namespace WebApi.DTOs.Animal
 {
     public class ReturnAnimalDTO
     {
         private string chippingDateTime;
-
         public int Id { get; set; }
         public List<int> AnimalTypes { get; set; }
         public float Weight { get; set; }

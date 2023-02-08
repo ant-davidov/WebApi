@@ -1,6 +1,6 @@
-﻿using WebApi.DTOs;
-using WebApi.Entities;
+﻿using WebApi.Entities;
 using WebApi.Hellpers;
+using WebApi.Hellpers.CreatePage;
 
 namespace WebApi.Interfaces
 {

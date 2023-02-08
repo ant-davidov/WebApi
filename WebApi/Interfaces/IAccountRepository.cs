@@ -1,6 +1,7 @@
 ﻿using WebApi.DTOs;
 using WebApi.Entities;
 using WebApi.Hellpers;
+using WebApi.Hellpers.CreatePage;
 
 namespace WebApi.Interfaces
 {
@@ -9,7 +10,6 @@ namespace WebApi.Interfaces
         void AddAccount(Account account);
         Task<Account> GetAccountAsync(int id);
         Task<Account> GetAccountByEmailAndPasswordAsync(string email, string password);
-        Task<Account> GetAccountByEmailAsync(string email);
         void UpdateAccount(Account account);
         void DeleteAccount(Account account);
         Task<bool> AnimalsExistAsync(long id);

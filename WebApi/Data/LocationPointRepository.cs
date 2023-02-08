@@ -1,7 +1,6 @@
 ﻿using WebApi.Entities;
 using WebApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Principal;
 
 namespace WebApi.Data
 {
@@ -30,7 +29,7 @@ namespace WebApi.Data
         
         public async Task<bool> CheckCordinatesAsync(LocationPoint point)
         {
-          return  await _context.LocationPoints.FirstOrDefaultAsync(x => x.Latitude == point.Latitude && x.Longitude == point.Longitude) == null;
+          return  !await _context.LocationPoints.AnyAsync(x => x.Latitude == point.Latitude && x.Longitude == point.Longitude);
 
         }
         public async Task<bool> VisitedLocationExistAsync(long id)
@@ -41,8 +40,6 @@ namespace WebApi.Data
            .ThenInclude(p=> p.LocationPoint)
            .AnyAsync(p=>p.ChippingLocation.Id == id || p.VisitedLocations.Any(x=> x.LocationPoint.Id == id));
         }
-
-
         public void UpdateLocationPoint(LocationPoint locationPoint)
         {
             _context.Entry(locationPoint).State = EntityState.Modified;
