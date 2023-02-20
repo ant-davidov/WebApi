@@ -53,8 +53,16 @@ namespace WebApi.Hellpers
 
             CreateMap<Account, Account>()
                 .ForMember(dst => dst.Id, opt => opt.Ignore());
+
             CreateMap<LocationPoint, LocationPoint>()
                 .ForMember(dst => dst.Id, opt => opt.Ignore());
+            
+            CreateMap<LocationPointDTO, LocationPoint>()
+                .ForMember(dst => dst.Id, opt => opt.Ignore());
+            
+             CreateMap<RegistrationDTO, Account>()
+                .ForMember(dst => dst.Id, opt => opt.Ignore());
+            
 
 
 

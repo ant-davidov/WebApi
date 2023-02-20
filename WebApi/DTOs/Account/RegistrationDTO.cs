@@ -1,13 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading.Tasks;
 
-
-namespace WebApi.Entities
+namespace WebApi.DTOs
 {
-    public class Account
-    {
-        
-        private string email;
-        public int Id { get; set; } = 0;
+    public class RegistrationDTO
+    {   private string email;
         [Required(AllowEmptyStrings = false)]
         public string FirstName { get; set; }
         [Required(AllowEmptyStrings = false)]
@@ -17,6 +17,5 @@ namespace WebApi.Entities
         public string Email { get => email; set => email = value?.ToLower().Trim(); }
         [Required(AllowEmptyStrings = false)]
         public string Password { get; set; }
-      
     }
 }

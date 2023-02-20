@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using WebApi.DTOs;
 using WebApi.Entities;
 using WebApi.Interfaces;
 
@@ -19,7 +20,7 @@ namespace WebApi.Controllers
         [HttpGet("{id?}")]
         public async Task<ActionResult<LocationPoint>> GetById(int? id)
         {
-            if (id == null || id <= 0) return BadRequest();
+            if (id == null || id <= 0) return BadRequest("Incorrect id");
             var point = await _unitOfWork.LocationPointRepository.GetLocationPointAsync(id.Value);
             if (point == null) return NotFound();
             return point;
@@ -27,7 +28,7 @@ namespace WebApi.Controllers
         [HttpPost]
         public async Task<ActionResult<LocationPoint>> Add([FromBody] LocationPoint point)
         {
-            if(!_unitOfWork.LocationPointRepository.CheckCordinatesAsync(point).Result)  return Conflict();
+            if(! await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(point))  return Conflict("Already have");
             point.Id = 0;
             _unitOfWork.LocationPointRepository.AddLocationPoint(point);
             await _unitOfWork.Complete();
@@ -35,13 +36,14 @@ namespace WebApi.Controllers
         }
 
         [HttpPut("{id?}")]
-        public async Task<ActionResult<LocationPoint>> Update(int? id, [FromBody] LocationPoint updatePoint)
+        public async Task<ActionResult<LocationPoint>> Update(int? id, [FromBody] LocationPointDTO updatePoint)
         {
-            if(id == null || id <= 0) return BadRequest();
+            if(id == null || id <= 0) return BadRequest("Incorrect id");
             var point = await _unitOfWork.LocationPointRepository.GetLocationPointAsync(id.Value);
             if(null == point) return NotFound();
-            if (!await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(updatePoint)) return Conflict();
-            point = _mapper.Map(updatePoint, point);
+            var newPoint = _mapper.Map<LocationPoint>(updatePoint);
+            if (!await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(newPoint)) return Conflict();
+            point = _mapper.Map(newPoint, point);
             _unitOfWork.LocationPointRepository.UpdateLocationPoint(point);
             await _unitOfWork.Complete();
             return point;
@@ -49,7 +51,7 @@ namespace WebApi.Controllers
         [HttpDelete("{id?}")]
         public async Task<ActionResult> Delete(int? id)
         {
-            if (id == null || id <= 0) return BadRequest();
+            if (id == null || id <= 0) return BadRequest("Incorrect id");
             var point = await _unitOfWork.LocationPointRepository.GetLocationPointAsync(id.Value);
             if (null == point) return NotFound();
             if(await _unitOfWork.LocationPointRepository.VisitedLocationExistAsync(point.Id))  return BadRequest("Have visited point");

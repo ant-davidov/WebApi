@@ -20,7 +20,7 @@ namespace WebApi.Controllers
         [HttpGet("{id?}")]
         public async Task<ActionResult<ReturnAnimalDTO>> GetById(int? id)
         {      
-            if (id == null || id <= 0) return BadRequest();
+            if (id == null || id <= 0) return BadRequest("Incorrect id");
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (null == animal) return NotFound();
             var animalDTO = _mapper.Map<ReturnAnimalDTO>(animal);
@@ -52,7 +52,7 @@ namespace WebApi.Controllers
             if (location == null) return NotFound("There is no location with this id"); 
             #endregion
             var animal = _mapper.Map<Animal>(addAnimalDTO);
-            var types = addAnimalDTO.AnimalTypes.Select( x =>_unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(x).Result);  
+            var types = addAnimalDTO.AnimalTypes.Select( x =>_unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(x).Result);
             animal.ChippingLocation = location;
             animal.Chipper = account;
             animal.AnimalTypes = types.ToList();

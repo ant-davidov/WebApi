@@ -90,7 +90,7 @@ namespace WebApi.Controllers
             var right = listVisitedLocations?.Skip(index + 1).FirstOrDefault();
             if (null != right && right.LocationPoint.Id == updatePoint.locationPointId)
                 return BadRequest("Already here");
-            //
+            // end
             var last = listVisitedLocations.LastOrDefault();
             if (last != null && last.LocationPoint.Id == updatePoint.locationPointId)
                 return BadRequest("Already here");       

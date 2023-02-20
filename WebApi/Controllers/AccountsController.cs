@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Principal;
 using WebApi.DTOs;
 using WebApi.Entities;
 using WebApi.Hellpers;
@@ -22,16 +23,15 @@ namespace WebApi.Controllers
         [AllowAnonymous]
         [HttpPost]
         [Route("/registration")]
-        public async Task<ActionResult<AccountDTO>> Registration([FromBody] Account account)
+        public async Task<ActionResult<AccountDTO>> Registration([FromBody] RegistrationDTO registrationAccount)
         {   
             var emailAuthorizedAccount = HttpContext.User.Identity.Name;
             if(emailAuthorizedAccount != null) return Forbid();
-            if (!await _unitOfWork.AccountRepository.EmailIsFree(account.Email)) return Conflict("Email is not free");
-            account.Id = 0;
+            if (!await _unitOfWork.AccountRepository.EmailIsFree(registrationAccount.Email)) return Conflict("Email is not free");
+            var account =  _mapper.Map<Account>(registrationAccount);
             _unitOfWork.AccountRepository.AddAccount(account);
             await _unitOfWork.Complete();
-            var newAccount = await _unitOfWork.AccountRepository.GetAccountByEmailAndPasswordAsync(account.Email, account.Password);
-            return Created("./registration", _mapper.Map<AccountDTO>(newAccount));
+            return Created("./registration", _mapper.Map<AccountDTO>(account));
         }
 
         [HttpGet("[action]")]
@@ -43,16 +43,16 @@ namespace WebApi.Controllers
         [HttpGet("{id?}")]
         public async Task<ActionResult<AccountDTO>> GetById(int? id)
         {      
-            if (id == null || id <= 0) return BadRequest();
+            if (id == null || id <= 0) return BadRequest("Incorrect id");
             var account =  await _unitOfWork.AccountRepository.GetAccountAsync(id.Value);
             if (account == null) return NotFound();
             return _mapper.Map<AccountDTO>(account);
         }
         [HttpPut("{id?}")]
-        public async Task<ActionResult<AccountDTO>> Update(int? id, [FromBody] Account accountUpdate)
+        public async Task<ActionResult<AccountDTO>> Update(int? id, [FromBody] RegistrationDTO accountUpdate)
         {
             #region Validation
-            if (id == null || id <= 0) return BadRequest();
+            if (id == null || id <= 0) return BadRequest("Incorrect id");
             var account = await _unitOfWork.AccountRepository.GetAccountAsync(id.Value);
             if (account == null) return Forbid();
             if (accountUpdate.Email != account.Email)
@@ -72,7 +72,7 @@ namespace WebApi.Controllers
         public async Task<ActionResult> Delete(int? id)
         {
             #region Validation
-            if (id == null || id <= 0) return BadRequest();
+            if (id == null || id <= 0) return BadRequest("Incorrect id");
             var account = await _unitOfWork.AccountRepository.GetAccountAsync(id.Value);
             if (account == null) return Forbid();
             var emailAuthorizedAccount = HttpContext.User.Identity.Name;
