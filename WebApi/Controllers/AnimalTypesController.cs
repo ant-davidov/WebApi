@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.DTOs;
-using WebApi.Entities;
-using WebApi.Interfaces;
+using Domain.DTOs;
+using Domain.Entities;
+using Domain.Interfaces;
+
 
 namespace WebApi.Controllers
 {   

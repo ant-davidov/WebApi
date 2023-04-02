@@ -7,6 +7,7 @@ namespace WebApi.Controllers
     [CustomAuthorize]
     [ValidateModel]
     [Route("[controller]")]
+
     public class BaseApiController : ControllerBase
     {
     }

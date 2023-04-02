@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
+using Domain;
+using Domain.DTOs;
+using Domain.DTOs.VisitLocationDTO;
+using Domain.Entities;
+using Domain.Enums;
+using Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.DTOs;
-using WebApi.DTOs.VisitLocationDTO;
-using WebApi.Entities;
-using WebApi.Enums;
-using WebApi.Hellpers;
-using WebApi.Hellpers.CreatePage;
-using WebApi.Interfaces;
+
 
 namespace WebApi.Controllers
 {
@@ -29,14 +29,7 @@ namespace WebApi.Controllers
             if (id == null || id <= 0) return BadRequest("Invalid id");
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (animal == null) return NotFound("Animal not found");
-            var query = animal.VisitedLocations.AsQueryable();
-            query = query.Where(x => DateTime.Compare(x.DateTimeOfVisitLocationPoint, locationsParams.StartDateTime) >= 0);
-            query = query.Where(x => DateTime.Compare(x.DateTimeOfVisitLocationPoint, locationsParams.EndDateTime) <= 0);
-            query = query.OrderBy(x => x.DateTimeOfVisitLocationPoint);
-            var points =  PageList<AnimalVisitedLocation>.Create(query, locationsParams.From, locationsParams.Size); 
-            var dtos = new List<AnimalVisitedLocationDTO>();
-            foreach (var i in points)
-               dtos.Add(_mapper.Map<AnimalVisitedLocationDTO>(i));
+            var dtos = await _unitOfWork.AnimalVisitedLocationRepository.GetAnimalVisitedLocationByParametersRepositoryAsync(id.Value, locationsParams);
             return Ok(dtos);     
         }
 

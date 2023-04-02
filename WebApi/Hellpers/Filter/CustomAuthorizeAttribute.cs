@@ -13,15 +13,16 @@ namespace WebApi.Hellpers.Filter
             var allowAnonymous = context.ActionDescriptor.EndpointMetadata.OfType<AllowAnonymousAttribute>().Any();
             if(context.HttpContext.Request.Method == "GET" && context.HttpContext.User.Identity.IsAuthenticated) return;
             var claim = context.HttpContext.User.Claims.FirstOrDefault();
-            if (null == claim) 
+            if (null == claim)
             {
                 context.Result = new UnauthorizedResult();
                 return;
             }
-            if(claim.Type == ClaimTypes.Anonymous && allowAnonymous)  return;
-            if(claim.Type == ClaimTypes.Name) return;
-            
+            if (claim.Type == ClaimTypes.Anonymous && allowAnonymous) return;
+            if (claim.Type == ClaimTypes.Name) return;
+
             context.Result = new UnauthorizedResult();
+            return;
         }
     }
 }

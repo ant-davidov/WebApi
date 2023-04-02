@@ -1,26 +1,28 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Domain.Entities;
+using Domain.Interfaces;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using WebApi.Interfaces;
 
 namespace WebApi.Hellpers.Filter
 {
     public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly UserManager<Account> _userManager;
 
-        public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IUnitOfWork unitOfWork) : base(options, logger, encoder, clock)
+        public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, UserManager<Account> userManager) : base(options, logger, encoder, clock)
         {
-            _unitOfWork = unitOfWork;
+            _userManager = userManager;
         }
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
            try 
            {
-                
+               
                 var header = Request.Headers["Authorization"];
                 if (header.Count == 0)
                     return CreateAnonymousTicket();
@@ -35,8 +37,11 @@ namespace WebApi.Hellpers.Filter
                 string[] array = credentials.Split(":");
                 string email = array[0].Trim();
                 string password = array[1].Trim();
-                var user = await _unitOfWork.AccountRepository.GetAccountByEmailAndPasswordAsync(email, password);
+                var user =  await _userManager.FindByEmailAsync(email);
                 if (user == null)
+                    return AuthenticateResult.Fail("User or password invalid");
+                var result = await _userManager.CheckPasswordAsync(user, password);
+                if (!result)
                     return AuthenticateResult.Fail("User or password invalid");
                 var claims = new[] { new Claim(ClaimTypes.Name, user.Email) };
                 var identity = new ClaimsIdentity(claims, Scheme.Name);

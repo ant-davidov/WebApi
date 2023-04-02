@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
+using Domain.DTOs;
+using Domain.Entities;
+using Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.DTOs;
-using WebApi.Entities;
-using WebApi.Interfaces;
 
 namespace WebApi.Controllers
 {
@@ -26,10 +26,10 @@ namespace WebApi.Controllers
             return point;
         }
         [HttpPost]
-        public async Task<ActionResult<LocationPoint>> Add([FromBody] LocationPoint point)
+        public async Task<ActionResult<LocationPoint>> Add([FromBody] LocationPointDTO pointDTO)
         {
+            var point = _mapper.Map<LocationPoint>(pointDTO);
             if(! await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(point))  return Conflict("Already have");
-            point.Id = 0;
             _unitOfWork.LocationPointRepository.AddLocationPoint(point);
             await _unitOfWork.Complete();
             return Created("./locations", point);
