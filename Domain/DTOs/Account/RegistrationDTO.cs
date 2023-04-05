@@ -1,3 +1,4 @@
+using Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -20,5 +21,6 @@ namespace Domain.DTOs
         public string Email { get => email; set => email = value?.ToLower().Trim(); }
         [Required(AllowEmptyStrings = false)]
         public string Password { get; set; }
-    }
+        public RoleEnum Role { get; set; } 
+}
 }

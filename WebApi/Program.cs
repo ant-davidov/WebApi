@@ -1,11 +1,14 @@
 using System.Text.Json.Serialization;
 using Domain.Entities;
+using Domain.Entities.Secondary;
 using Domain.Interfaces;
 using Infrastructure.Data;
+using Infrastructure.Data.Seed;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using WebApi.Hellpers;
 using WebApi.Hellpers.Filter;
 
@@ -21,14 +24,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddDbContext<DataContext>(options =>  
-              options.UseNpgsql(connectionString, b=> b.MigrationsAssembly("WebApi")));
+              options.UseNpgsql(connectionString,  b=> b.MigrationsAssembly("WebApi")));
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
 builder.Services.AddControllers().AddJsonOptions(opt =>
     {
         opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-builder.Services.AddIdentity<Account, AppRole>(options =>
+builder.Services.AddIdentity<Account, ApplicationRole>(options =>
 {
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 1;
@@ -39,6 +42,7 @@ builder.Services.AddIdentity<Account, AppRole>(options =>
 })
                 .AddEntityFrameworkStores<DataContext>()
                 .AddUserManager<UserManager<Account>>()
+                .AddRoleManager<RoleManager<ApplicationRole>>()
                 .AddDefaultTokenProviders();
 builder.Services.AddAuthentication(options =>
 {
@@ -46,6 +50,9 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = "BasicAuthentication";
 })
         .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
+
+
+
 
 
 var app = builder.Build();
@@ -64,7 +71,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-
+SeedUsers.Initialize(builder.Services.BuildServiceProvider());
 app.Run();
 
 

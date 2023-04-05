@@ -2,6 +2,7 @@
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -37,13 +38,16 @@ namespace WebApi.Hellpers.Filter
                 string[] array = credentials.Split(":");
                 string email = array[0].Trim();
                 string password = array[1].Trim();
-                var user =  await _userManager.FindByEmailAsync(email);
+                var user =  await _userManager.Users.Include(a=>a.UserRoles).ThenInclude(n=>n.Role).Where(a=>a.Email == email).FirstOrDefaultAsync();             
                 if (user == null)
                     return AuthenticateResult.Fail("User or password invalid");
                 var result = await _userManager.CheckPasswordAsync(user, password);
                 if (!result)
                     return AuthenticateResult.Fail("User or password invalid");
-                var claims = new[] { new Claim(ClaimTypes.Name, user.Email) };
+                var claims = new[] { 
+                    new Claim(ClaimTypes.Name, user.Email), 
+                    new Claim(ClaimTypes.Role, user.UserRoles.FirstOrDefault()?.Role?.Name), 
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) };
                 var identity = new ClaimsIdentity(claims, Scheme.Name);
                 var principal = new ClaimsPrincipal(identity);
                 var ticket = new AuthenticationTicket(principal, Scheme.Name);

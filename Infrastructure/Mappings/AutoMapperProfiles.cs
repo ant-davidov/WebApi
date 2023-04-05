@@ -3,6 +3,7 @@ using AutoMapper;
 using Domain.DTOs;
 using Domain.DTOs.Animal;
 using Domain.Entities;
+using Domain.Entities.Secondary;
 
 namespace WebApi.Hellpers
 {
@@ -12,7 +13,8 @@ namespace WebApi.Hellpers
         public AutoMapperProfiles()
         {
             CreateMap<Account, AccountDTO>();
-           
+            CreateMap<AreaDTO, Area>();
+
             CreateMap<AnimalType, AnimalTypeDTO>();
 
             CreateMap<AnimalTypeDTO, AnimalType>()
@@ -59,11 +61,21 @@ namespace WebApi.Hellpers
             
             CreateMap<LocationPointDTO, LocationPoint>()
                 .ForMember(dst => dst.Id, opt => opt.Ignore());
-            
-             CreateMap<RegistrationDTO, Account>()
+
+
+
+
+
+            CreateMap<RegistrationDTO, Account>()
                 .ForMember(dst => dst.Id, opt => opt.Ignore())
                 .ForMember(dst => dst.UserName, opt => opt.MapFrom(
                     src => src.Email));
+         
+
+            CreateMap<Account, AccountDTO>()
+        .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.UserRoles.FirstOrDefault().Role.Name));
+
+
 
 
 

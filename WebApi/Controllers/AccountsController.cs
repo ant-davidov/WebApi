@@ -14,15 +14,17 @@ using WebApi.Hellpers.Filter;
 
 namespace WebApi.Controllers
 {
-   
+
     public class AccountsController : BaseApiController
     {
-        private readonly UserManager<Account> _userManager;
+
         private readonly IMapper _mapper;
-        public AccountsController(UserManager<Account> userManager, IMapper mapper)
+        private readonly IUnitOfWork _unitOfWork;
+        public AccountsController(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _userManager = userManager;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
+
         }
 
         [AllowAnonymous]
@@ -31,16 +33,17 @@ namespace WebApi.Controllers
         public async Task<ActionResult<AccountDTO>> Registration([FromBody] RegistrationDTO registrationAccount)
         {
             var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            if(emailAuthorizedAccount != null) return Forbid();
-            registrationAccount.Email = _userManager.NormalizeEmail(registrationAccount.Email);
-            if (await _userManager.FindByEmailAsync(registrationAccount.Email) != null) return Conflict("Email is not free"); 
-            var account =  _mapper.Map<Account>(registrationAccount);
-            var res = await _userManager.CreateAsync(account,registrationAccount.Password);
+            if (emailAuthorizedAccount != null) return Forbid();
+            // registrationAccount.Email = _userManager.NormalizeEmail(registrationAccount.Email);
+            if (!await _unitOfWork.AccountRepository.EmailIsFree(registrationAccount.Email)) return Conflict("Email is not free");
+            var account = _mapper.Map<Account>(registrationAccount);
+            var res = await _unitOfWork.AccountRepository.AddAccount(account, registrationAccount.Password);
             if (res.Succeeded)
             {
-                //await _userManager.AddToRoleAsync(account, RoleEnum.CHIPPER);
+                await _unitOfWork.AccountRepository.AddRoleAsync(account, RoleEnum.USER.ToString());
                 return Created("./registration", _mapper.Map<AccountDTO>(account));
             }
+
             else
                 return BadRequest(res.Errors.First());
         }
@@ -48,77 +51,86 @@ namespace WebApi.Controllers
         [HttpGet("[action]")]
         public async Task<ActionResult<IEnumerable<AccountDTO>>> Search([FromQuery] AccountParams accountParams)
         {
-            return Ok(await _userManager.GetAccountsWitsParamsAsync(accountParams));
+            return Ok(await _unitOfWork.AccountRepository.GetAccountsWitsParamsAsync(accountParams));
         }
-       
+
+
+        [CustomAuthorize(adminPrivileges: true)]
         [HttpGet("{id?}")]
         public async Task<ActionResult<AccountDTO>> GetById(int? id)
         {
-            var a = _userManager.Users.ToList();
             if (id == null || id <= 0) return BadRequest("Incorrect id");
-            var account = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
-            if (account == null) return NotFound();
-            return _mapper.Map<AccountDTO>(account);
+            var searchAccount = await _unitOfWork.AccountRepository.GetAccountAsync(id.Value);
+            if (searchAccount == null) return NotFound();
+            return _mapper.Map<AccountDTO>(searchAccount);
         }
+
+        [CustomAuthorize]
         [HttpPut("{id?}")]
+
         public async Task<ActionResult<AccountDTO>> Update(int? id, [FromBody] RegistrationDTO accountUpdate)
         {
             try
             {
+                #region Validation
+                if (id == null || id <= 0) return BadRequest("Incorrect id");
+                var account = await _unitOfWork.AccountRepository.GetAccountAsync(id.Value);
+                if (account == null) return Forbid();
+                if (accountUpdate.Email != account.Email)
+                    if (!await _unitOfWork.AccountRepository.EmailIsFree(accountUpdate.Email))
+                        return Conflict();
+                #endregion
+                account = _mapper.Map(accountUpdate, account);
+                await _unitOfWork.AccountRepository.DeleteRoleAsync(account, account.UserRoles.FirstOrDefault().Role.Name);
+                await _unitOfWork.AccountRepository.AddRoleAsync(account, accountUpdate.Role.ToString());
+                if (await _unitOfWork.AccountRepository.UpdateAccount(account, accountUpdate.Password))
+                    return Ok(_mapper.Map<AccountDTO>(account));
 
-           
-            #region Validation
-            if (id == null || id <= 0) return BadRequest("Incorrect id");
-            var account = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
-            if (account == null) return Forbid();
-            if (accountUpdate.Email != account.Email)
-                if (accountUpdate.Email != account.Email && await _userManager.FindByEmailAsync(accountUpdate.Email) != null)
-                    return Conflict();
-            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            if (emailAuthorizedAccount != account.Email) return Forbid(); 
-            #endregion
-            account = _mapper.Map(accountUpdate, account);
-
-          
-            if ((await _userManager.UpdateAsync(account)).Succeeded)
-                {
-                    if (!string.IsNullOrWhiteSpace(accountUpdate.Password) && !await _userManager.CheckPasswordAsync(account,accountUpdate.Password))
-                    {
-                        await _userManager.RemovePasswordAsync(account);
-                        await _userManager.AddPasswordAsync(account, accountUpdate.Password);
-                    }  
-                    return _mapper.Map<AccountDTO>(account);
-                }
-               
-            return BadRequest("Update Error");
+                return BadRequest("Update Error");
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString() + " " + ex.Message);
-                return BadRequest("Update Error error");
+                return BadRequest(ex.Message + " " + ex.ToString());
             }
+
+
         }
+        [CustomAuthorize(true)]
         [HttpDelete("{id?}")]
         public async Task<ActionResult> Delete(int? id)
         {
             #region Validation
-            try
-            {
-                if (id == null || id <= 0) return BadRequest("Incorrect id");
-                var account = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
-                if (account == null) return Forbid();
-                var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-                if (emailAuthorizedAccount != account.Email) return Forbid();
-                if (await _userManager.AnimalsExistAsync(account.Id)) return BadRequest("There are animals");
-                #endregion
-                await _userManager.DeleteAsync(account);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized(ex.ToString() + " " + ex.Message);
-
-            }
+            if (id == null || id <= 0) return BadRequest("Incorrect id");
+            var accountForDelete = await _unitOfWork.AccountRepository.GetAccountAsync(id.Value);
+            if (accountForDelete == null) return NotFound();
+            if (await _unitOfWork.AccountRepository.AnimalsExistAsync(accountForDelete.Id)) return BadRequest("There are animals");
+            #endregion
+            await _unitOfWork.AccountRepository.DeleteAccount(accountForDelete);
+            return Ok();
         }
+
+        [HttpPost]
+        [Route("/accounts")]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN))]
+        public async Task<ActionResult<AccountDTO>> Accounts([FromBody] RegistrationDTO registrationAccount)
+        {
+
+            if (!await _unitOfWork.AccountRepository.EmailIsFree(registrationAccount.Email)) return Conflict("Email is not free");
+            var newAccount = _mapper.Map<Account>(registrationAccount);
+            var res = await _unitOfWork.AccountRepository.AddAccount(newAccount, registrationAccount.Password);
+            await _unitOfWork.Complete();
+
+            if (res.Succeeded)
+            {
+                await _unitOfWork.AccountRepository.AddRoleAsync(newAccount, registrationAccount.Role.ToString());
+                return Created("./registration", _mapper.Map<AccountDTO>(newAccount));
+            }
+            else
+                return BadRequest(res.Errors.First());
+        }
+
+
+
+
     }
 }

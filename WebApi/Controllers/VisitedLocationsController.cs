@@ -5,6 +5,7 @@ using Domain.DTOs.VisitLocationDTO;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -14,11 +15,13 @@ namespace WebApi.Controllers
     public class VisitedLocationsController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
-           private readonly IMapper _mapper;
-        public VisitedLocationsController(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IMapper _mapper;
+        private readonly UserManager<Account> _userManager;
+        public VisitedLocationsController(IUnitOfWork unitOfWork, IMapper mapper, UserManager<Account> userManager)
         {
             _unitOfWork = unitOfWork;
-             _mapper = mapper;
+            _mapper = mapper;
+            _userManager = userManager;
         }
 
 
@@ -38,6 +41,10 @@ namespace WebApi.Controllers
         {
             #region Validation
             if (id == null || id <= 0 || pointId <= 0) return BadRequest("Invalid id");
+            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
+            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
+            //if(authorizedAccount.Role == Domain.Enums.RoleEnum.USER) return Forbid();
+        
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (animal == null) return NotFound("Animal not found");
             if (LifeStatusEnum.DEAD == animal.LifeStatus) return BadRequest("Animal is dead");
@@ -68,6 +75,10 @@ namespace WebApi.Controllers
 
             #region Validation
             if (id == null || id <= 0) return BadRequest("Invalid id");
+            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
+            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
+            //if(authorizedAccount.Role == Domain.Enums.RoleEnum.USER) return Forbid();
+        
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (animal == null) return NotFound("Animal not found");
             if (animal.VisitedLocations == null || animal.VisitedLocations?.Count() < 1) return BadRequest("Visited point is null");
@@ -102,6 +113,10 @@ namespace WebApi.Controllers
          {
             #region Validation
             if (id == null || id <= 0 || visitedPointId == null || visitedPointId <= 0) return BadRequest();
+            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
+            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
+            //if(authorizedAccount.Role != Domain.Enums.RoleEnum.ADMIN) return Forbid();
+        
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (null == animal) return NotFound("Animal not found");
             if (animal.VisitedLocations == null || animal.VisitedLocations?.Count() < 1) return BadRequest("Visited point is null");

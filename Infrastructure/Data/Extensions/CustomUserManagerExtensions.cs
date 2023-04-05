@@ -22,10 +22,10 @@ namespace Infrastructure.Data.Hellpers.Extensions
             query = query.OrderBy(a => a.Id);
             return await query.ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).AsNoTracking().Skip(accountParams.From).Take(accountParams.Size).ToListAsync();
         }
-        public static async  Task<bool> AnimalsExistAsync(this UserManager<Account> userManager,long id)
+        public static async Task<bool> AnimalsExistAsync(this UserManager<Account> userManager, long id)
         {
             var a = userManager.Users.Include(a => a.Animals).ToList();
-            return ( (await userManager.Users.Include(u => u.Animals).Where(u => u.Id == id).FirstOrDefaultAsync()).Animals.Any());
+            return ((await userManager.Users.Include(u => u.Animals).Where(u => u.Id == id).FirstOrDefaultAsync()).Animals.Any());
         }
         public static IMapper Configure()
         {

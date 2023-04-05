@@ -35,19 +35,19 @@ namespace Infrastructure.Data
         {   var query = GetAnumal();
             return await query.AsSplitQuery().FirstOrDefaultAsync(a => a.Id == id);
         }
-       
+
         public async Task<IEnumerable<ReturnAnimalDTO>> GetAnimalsWitsParamsAsync(AnimalParams animalParams)
         {
             var query = GetAnumal().AsQueryable();
-            query = query.Where(a => DateTime.Compare(a.ChippingDateTime,animalParams.StartDateTime) >= 0);
+            query = query.Where(a => DateTime.Compare(a.ChippingDateTime, animalParams.StartDateTime) >= 0);
             query = query.Where(a => DateTime.Compare(a.ChippingDateTime, animalParams.EndDateTime) <= 0);
             query = query.Where(a => animalParams.ChipperId == 0 || a.Chipper.Id == animalParams.ChipperId);
             query = query.Where(a => animalParams.LifeStatus == null || a.LifeStatus == animalParams.LifeStatus);
             query = query.Where(a => animalParams.Gender == null || a.Gender == animalParams.Gender);
-            query = query.Where(a =>animalParams.ChippingLocationId == 0 ||  a.ChippingLocation.Id == animalParams.ChippingLocationId);
+            query = query.Where(a => animalParams.ChippingLocationId == 0 || a.ChippingLocation.Id == animalParams.ChippingLocationId);
             query = query.OrderBy(a => a.Id);
             return await query.ProjectTo<ReturnAnimalDTO>(_mapper.ConfigurationProvider).AsNoTracking().Skip(animalParams.From).Take(animalParams.Size).ToListAsync();
-           
+
         }
 
         public void Update(Animal animal)

@@ -1,4 +1,6 @@
-﻿namespace Domain.DTOs
+﻿using Domain.Enums;
+
+namespace Domain.DTOs
 {
     public class AccountDTO
     {
@@ -8,5 +10,6 @@
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get => email; set => email = value?.ToLower(); }
-    }
+        public string Role { get; set; }
+}
 }
