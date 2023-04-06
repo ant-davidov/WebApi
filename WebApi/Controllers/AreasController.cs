@@ -90,13 +90,22 @@ namespace WebApi.Controllers
             return Ok();
 
         }
-        [AllowAnonymous]
-        [HttpDelete("{id?}/analytics")]
+        [HttpGet("{id?}/analytics")]
+        
         public async Task<ActionResult> Analytics(long? id, [FromQuery] AnimalsAnalyticsParams searchParams)
         {
-           var r = await _unitOfWork.AnimalsAnalyticsRepository.GetAnalyticsAsync(id.Value,searchParams.StartDateTime,searchParams.EndDateTime);
-            return Ok(r);
+            try
+            {
+                var r = await _unitOfWork.AnimalsAnalyticsRepository.GetAnalyticsAsync(id.Value, searchParams.StartDateTime, searchParams.EndDateTime);
+                return Ok(r);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message + " " + ex.ToString());
+            }
 
         }
+
+       
     }
 }

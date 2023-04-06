@@ -55,21 +55,25 @@ namespace Infrastructure.Data
             var animalsAnalytics = visitedAnimals.GroupBy(a => a.AnimalTypes.FirstOrDefault().Type)
                 .Select(g =>
                 {
-                    return new
+                    return new AnimalsAnalytics
                     {
-                        animalType = g.Key,
-                        animalTypeId = g.FirstOrDefault().AnimalTypes.FirstOrDefault().Id,
-                        quantityAnimals = g.Count(),
-                        animalsArrived = g.SelectMany(a => a.VisitedLocations)
+                        AnimalType = g.Key,
+                        AnimalTypeId = g.FirstOrDefault().AnimalTypes.FirstOrDefault().Id,
+                        QuantityAnimals = g.Count(),
+                        AnimalsArrived = g.SelectMany(a => a.VisitedLocations)
                             .Count(vl => vl.DateTimeOfVisitLocationPoint >= startDate && vl.DateTimeOfVisitLocationPoint <= endDate),
-                        animalsGone = g.SelectMany(a => a.VisitedLocations)
+                        AnimalsGone = g.SelectMany(a => a.VisitedLocations)
                             .Count(vl => vl.DateTimeOfVisitLocationPoint >= startDate && vl.DateTimeOfVisitLocationPoint <= endDate &&
                                          polygon.Contains(Convert(vl.LocationPoint)))
                     };
                 })
                 .ToList();
-
-            return new AnalyticsResponse();
+            var analytics = new AnalyticsResponse();
+            analytics.AnimalsAnalytics = animalsAnalytics;
+            analytics.TotalAnimalsGone = totalAnimalsGone;
+            analytics.TotalQuantityAnimals = totalQuantityAnimals;
+            analytics.TotalAnimalsArrived = totalAnimalsArrived;
+            return analytics;
         }
 
         private NetTopologySuite.Geometries.Point Convert(LocationPoint myPoint)

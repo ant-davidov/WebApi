@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230405160451_InitialCreate")]
+    [Migration("20230405185010_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -309,7 +309,8 @@ namespace WebApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AreaId");
+                    b.HasIndex("AreaId")
+                        .HasDatabaseName("IX_Coordinates_AreaId");
 
                     b.ToTable("Coordinates");
                 });

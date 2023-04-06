@@ -28,12 +28,18 @@ namespace WebApi.Controllers
         [HttpGet("{id?}/locations")]
         public async Task<ActionResult<IEnumerable<AnimalVisitedLocation>>> Search(long? id, [FromQuery] VisitedLocationsParams locationsParams)
         {
-            
-            if (id == null || id <= 0) return BadRequest("Invalid id");
-            var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
-            if (animal == null) return NotFound("Animal not found");
-            var dtos = await _unitOfWork.AnimalVisitedLocationRepository.GetAnimalVisitedLocationByParametersRepositoryAsync(id.Value, locationsParams);
-            return Ok(dtos);     
+            try
+            {
+                if (id == null || id <= 0) return BadRequest("Invalid id");
+                var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
+                if (animal == null) return NotFound("Animal not found");
+                var dtos = await _unitOfWork.AnimalVisitedLocationRepository.GetAnimalVisitedLocationByParametersRepositoryAsync(id.Value, locationsParams);
+                return Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message + " " + ex.ToString());
+            }
         }
 
         [HttpPost("{id?}/locations/{pointId?}")]

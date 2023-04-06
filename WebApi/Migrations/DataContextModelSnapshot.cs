@@ -306,7 +306,8 @@ namespace WebApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AreaId");
+                    b.HasIndex("AreaId")
+                        .HasDatabaseName("IX_Coordinates_AreaId");
 
                     b.ToTable("Coordinates");
                 });

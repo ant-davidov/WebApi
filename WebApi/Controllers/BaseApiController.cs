@@ -6,7 +6,7 @@ using WebApi.Hellpers.Filter;
 namespace WebApi.Controllers
 {
     [ApiController]
-    //[CustomAuthorize]
+    [CustomAuthorize]
     [ValidateModel]
     [Route("[controller]")]
 
