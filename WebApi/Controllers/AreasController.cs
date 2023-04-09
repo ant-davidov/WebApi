@@ -9,6 +9,7 @@ using WebApi.Hellpers;
 using Domain.DTOs.Animal;
 using Microsoft.EntityFrameworkCore;
 using Domain.CreatePage;
+using Domain.Entities.Secondary;
 
 namespace WebApi.Controllers
 {
@@ -82,7 +83,6 @@ namespace WebApi.Controllers
             if (id == null || id <= 0) return BadRequest("Invalid id");
             var emailAuthorizedAccount = HttpContext.User.Identity.Name;
             var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount);
-            //if (authorizedAccount.Role != Domain.Enums.RoleEnum.ADMIN) return Forbid();
             var area = await _unitOfWork.AreaRepository.GetAreaAsync(id.Value);
             if (null == area) return NotFound("Area not found");
             _unitOfWork.AreaRepository.DeleteArea(area);
@@ -92,7 +92,7 @@ namespace WebApi.Controllers
         }
         [HttpGet("{id?}/analytics")]
         
-        public async Task<ActionResult> Analytics(long? id, [FromQuery] AnimalsAnalyticsParams searchParams)
+        public async Task<ActionResult<AnalyticsResponse>> Analytics(long? id, [FromQuery] AnimalsAnalyticsParams searchParams)
         {
             try
             {

@@ -108,8 +108,12 @@ namespace WebApi.Controllers
             double latitude = searchParams.latitude;
             double longitude = searchParams.longitude;
 
-            string location = $"latitude={latitude}&longitude={longitude}";
+            string location = $"{latitude},{longitude}";
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(location);
+            foreach (byte b in bytes)
+            {
+                Console.WriteLine(b);
+            }
             return System.Convert.ToBase64String(bytes);
         }
 

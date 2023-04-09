@@ -26,7 +26,11 @@ namespace Infrastructure.Data
         public void AddArea(Area area)
         {
             var writer = new WKTWriter();
-            area.PolygonString = writer.Write(area.Polygon);
+
+            var coordinates = area.AreaPoints.Select(p => new Coordinate(p.Latitude, p.Longitude)).ToList();
+            coordinates.Add(coordinates[0]);
+            var polygon = new Polygon(new LinearRing(coordinates.ToArray()));
+            area.PolygonString = writer.Write(polygon);
             _context.Areas.Add(area);
         }
 
@@ -71,51 +75,27 @@ namespace Infrastructure.Data
         public async Task<LocationPoint> GetAreaByLocations(GetAreaByLocationsParams searchParams)
         {
 
-            //var allPoints = _context.LocationPoints
-            //             .Select(l => new Coordinate(l.Longitude, l.Latitude))
-            //             .ToList();
-
-            //var searchPoint = new Coordinate(searchParams.longitude, searchParams.latitude);
-            //var closestPoint = allPoints.OrderBy(p => p.Distance(searchPoint) < 0.0).OrderBy(p => p.Distance(searchPoint)).FirstOrDefault();
-            //var point =_context.LocationPoints.FirstOrDefault(x => x.Longitude == closestPoint.X && x.Latitude == closestPoint.Y);
-
-            //return point;
-
-
             var allPoints = _context.LocationPoints
-                     .Select(l => new Coordinate(l.Longitude, l.Latitude))
+                     .Select(l => new Coordinate(l.Latitude, l.Longitude))
                      .ToList();
 
-            var searchPoint = new Coordinate(searchParams.longitude, searchParams.latitude);
-
-            var maxDistance = 0.0;
-
+            var searchPoint = new Coordinate(searchParams.latitude, searchParams.longitude);
+            double maxDistance = 0.5;
             var closestPoint = allPoints
                 .Where(p => p.Distance(searchPoint) <= maxDistance)
                 .OrderBy(p => p.Distance(searchPoint))
                 .FirstOrDefault();
-
-            if (closestPoint == null)
-                return null;
-
+            if (closestPoint == null) return null;
             var point = _context.LocationPoints
-                .FirstOrDefault(x => x.Longitude == closestPoint.X && x.Latitude == closestPoint.Y);
+                .FirstOrDefault(x => x.Latitude == closestPoint.X && x.Longitude == closestPoint.Y);
 
-            if (point == null)
-                return null;
-
-
+            if (point == null) return null;
             return point;
 
 
         }
 
-        private NetTopologySuite.Geometries.Point Convert(GetAreaByLocationsParams searchParams)
-        {
-            var coordinate = new NetTopologySuite.Geometries.Coordinate(searchParams.longitude, searchParams.latitude);
-            return new NetTopologySuite.Geometries.Point(coordinate);
-
-        }
+      
 
 
     }

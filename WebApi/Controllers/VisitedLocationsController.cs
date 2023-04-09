@@ -47,9 +47,9 @@ namespace WebApi.Controllers
         {
             #region Validation
             if (id == null || id <= 0 || pointId <= 0) return BadRequest("Invalid id");
-            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
-            //if(authorizedAccount.Role == Domain.Enums.RoleEnum.USER) return Forbid();
+            //var emailAuthorizedAccount = HttpContext.User.Identity.Name;
+            //var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
+            ////if(authorizedAccount.Role == Domain.Enums.RoleEnum.USER) return Forbid();
         
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (animal == null) return NotFound("Animal not found");
