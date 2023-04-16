@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Domain.CreatePage;
 using Domain.DTOs;
 using Domain.Entities;
 
@@ -16,6 +15,6 @@ namespace Domain.Interfaces
         void DeleteArea(Area animal);
         Task<bool> DoesIntersectWithExistingAreas(AreaDTO newArea, long id = 0);
         Task<bool> CheckPolygonIntersectionAsync(AreaDTO newArea, long id = 0, CancellationToken cancellationToken = default);
-        public Task<LocationPoint> GetAreaByLocations(GetAreaByLocationsParams searchParams);
+        public Task<LocationPoint> GetAreaByLocations(LocationPointDTO searchParams);
     }
 }

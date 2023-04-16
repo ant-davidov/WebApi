@@ -50,12 +50,12 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = "BasicAuthentication";
 })
         .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
-
-
+builder.Services.AddScoped<SeedUsers>();
 
 
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 
@@ -64,14 +64,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseRouting();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-SeedUsers.Initialize(builder.Services.BuildServiceProvider());
+
+var scope = app.Services.CreateScope();
+var dbInitializer = scope.ServiceProvider.GetRequiredService<SeedUsers>();
+dbInitializer.Initialize();
+
+
 app.Run();
 
 

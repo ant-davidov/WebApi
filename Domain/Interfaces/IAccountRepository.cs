@@ -1,12 +1,13 @@
 ﻿using Domain.DTOs;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 
 namespace Domain.Interfaces
 {
     public interface IAccountRepository
     {
-        Task<IdentityResult> AddAccount(Account account, string password);
+        Task<IdentityResult> AddAccount(Account account, string password, RoleEnum role = RoleEnum.USER);
         Task<Account> GetAccountAsync(int id);
         Task<Account> GetAccountByEmailAndPasswordAsync(string email, string password);
         Task<bool> UpdateAccount(Account account, string newPassword);

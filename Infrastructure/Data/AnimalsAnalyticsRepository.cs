@@ -39,6 +39,7 @@ namespace Infrastructure.Data
                 .Where(a => a.ChippingDateTime >= startDate && a.ChippingDateTime <= endDate && IsInsidePolygon(polygon, a.ChippingLocation) || a.VisitedLocations.Any(v => v.DateTimeOfVisitLocationPoint >= startDate && v.DateTimeOfVisitLocationPoint <= endDate && IsInsidePolygon(polygon, v.LocationPoint)))
                 .ToList();
 
+            // add Chipping Location in Visited Location
             visitedAnimals = visitedAnimals.Select(a =>
             {
                 var newVisitedPoint = new AnimalVisitedLocation
@@ -50,14 +51,15 @@ namespace Infrastructure.Data
                 return a;
             }).ToList();
 
+            //get Entries And Exits
             var tupleExitsAndEntries = GetEntriesAndExits(visitedAnimals, polygon);
-
+            // get tTotal Quantity Animals
             var listTotalQuantityAnimals = visitedAnimals
                   .Where(x => x.VisitedLocations.Any() && IsInsidePolygon(polygon, x.VisitedLocations
                         .OrderBy(y => y.DateTimeOfVisitLocationPoint)
                         .Last().LocationPoint))
                   .ToList();
-
+            //Group by type 
             var animalsAnalytics = visitedAnimals
                     .SelectMany(a => a.AnimalTypes, (a, t) => new { Animal = a, Type = t })
                     .GroupBy(at => at.Type.Type)
@@ -81,10 +83,6 @@ namespace Infrastructure.Data
             return analytics;
 
 
-
-
-
-
         }
 
         private NetTopologySuite.Geometries.Point Convert(LocationPoint myPoint)
@@ -101,38 +99,7 @@ namespace Infrastructure.Data
         }
 
 
-        private int GetTotalAnimalsArrived(List<Animal> visitedAnimals, Polygon polygon)
-        {
-            var numEntries = 0;
-            foreach (var animal in visitedAnimals)
-            {
-                var locations = animal.VisitedLocations
-                    .OrderBy(l => l.DateTimeOfVisitLocationPoint)
-                    .ToList();
-
-                if (locations.Count < 2)
-                {
-                    // this animal has visited fewer than 2 locations, so we can't
-                    // determine whether it has entered the area or not
-                    continue;
-                }
-                bool wasInside = IsInsidePolygon(polygon, animal.ChippingLocation);
-                for (int i = 1; i < locations.Count; i++)
-                {
-                    bool isInside = IsInsidePolygon(polygon, locations[i].LocationPoint);
-                    if (isInside != wasInside)
-                    {
-                        // the animal crossed the boundary of the area
-                        numEntries++;
-                        continue;
-                    }
-                    wasInside = isInside;
-                }
-            }
-            return numEntries;
-
-
-        }
+       
 
         private (List<Animal> Entries, List<Animal> Exits) GetEntriesAndExits(List<Animal> visitedAnimals, Polygon polygon)
         {
@@ -149,11 +116,8 @@ namespace Infrastructure.Data
                     .ToList();
 
                 if (locations.Count < 2)
-                {
-                    // this animal has visited fewer than 2 locations, so we can't
-                    // determine whether it has entered the area or not
                     continue;
-                }
+               
 
                 bool wasInside = IsInsidePolygon(polygon, locations[0].LocationPoint);
 
@@ -163,11 +127,9 @@ namespace Infrastructure.Data
                     bool isInside = IsInsidePolygon(polygon, locations[i].LocationPoint);
 
                     if (isInside != wasInside)
-                    {
-                        // the animal crossed the boundary of the area
+                    {             
                         if (!wasInside && !Entries.Contains(animal))
-                        {
-                            // the animal entered the area
+                        {                         
                             numEntries++;
                             Entries.Add(animal);
                         }
@@ -176,9 +138,7 @@ namespace Infrastructure.Data
                             numExits++;
                             Exits.Add(animal);
                         }
-
                     }
-
                     wasInside = isInside;
                 }
             }

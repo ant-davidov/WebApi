@@ -78,6 +78,7 @@ namespace WebApi.Controllers
 
 
         [HttpDelete("{id?}")]
+        [AllowAnonymous]
         public async Task<ActionResult> Delete(int? id)
         {
             if (id == null || id <= 0) return BadRequest("Invalid id");

@@ -27,7 +27,7 @@ namespace WebApi.Hellpers.Filter
             _roles = roles;
         }
 
-        public async void OnAuthorization(AuthorizationFilterContext context)
+        public  void OnAuthorization(AuthorizationFilterContext context)
         {
 
             if (!CheeckRole(_roles, context))

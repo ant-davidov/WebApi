@@ -69,7 +69,7 @@ namespace Infrastructure.Data
 
         }
 
-
+        public DbSet<Coordinates> Coordinates => Set<Coordinates>();
         public DbSet<Account> Accounts => Set<Account>();
         public DbSet<Animal> Animals => Set<Animal>();
         public DbSet<AnimalType> AnimalTypes => Set<AnimalType>();

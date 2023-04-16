@@ -4,8 +4,10 @@ using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using Domain.CreatePage;
 using Geohash;
+using System.Security.Cryptography;
+using Microsoft.AspNetCore.Authorization;
+using System.Collections;
 
 namespace WebApi.Controllers
 {
@@ -75,17 +77,19 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<long>> GetAreaByLocations([FromQuery] GetAreaByLocationsParams searchParams)
+        public async Task<ActionResult<long>> GetAreaByLocations([FromQuery] LocationPointDTO coordinates)
         {
-            var point = await _unitOfWork.AreaRepository.GetAreaByLocations(searchParams);
+            var point = await _unitOfWork.AreaRepository.GetAreaByLocations(coordinates);
             if (point == null) return NotFound();
             return point.Id;
         }
         [HttpGet("geohash")]
-        public async Task<ActionResult<string>> GetAreaByLocationsgeohash([FromQuery] GetAreaByLocationsParams searchParams)
+        public async Task<ActionResult<string>> GetAreaByLocationsgeohash([FromQuery] LocationPointDTO coordinates)
         {
+            var locPoint = _mapper.Map<LocationPoint>(coordinates);
+            if (await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(locPoint)) return NotFound("There is no point with such coordinates");
             var hasher = new Geohasher();
-            return hasher.Encode(searchParams.latitude, searchParams.longitude, 12);
+            return hasher.Encode(coordinates.Latitude, coordinates.Longitude, 12);
 
         }
 
@@ -93,28 +97,29 @@ namespace WebApi.Controllers
 
 
         [HttpGet("geohashv2")]
-        public async Task<ActionResult<string>> GetAreaByLocationsgeohash2([FromQuery] GetAreaByLocationsParams searchParams)
+        public async Task<ActionResult<string>> GetAreaByLocationsgeohash2([FromQuery] LocationPointDTO coordinates)
         {
-           
+            var locPoint = _mapper.Map<LocationPoint>(coordinates);
+            if (await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(locPoint)) return NotFound("There is no point with such coordinates");
             var hasher = new Geohasher();
-            var hash = hasher.Encode(searchParams.latitude, searchParams.longitude, 12);
+            var hash = hasher.Encode(coordinates.Latitude, coordinates.Longitude, 12);
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(hash);
             return System.Convert.ToBase64String(bytes).ToString();
         }
 
-        [HttpGet("geohashv3")]
-        public async Task<ActionResult<string>> GetAreaByLocationsgeohash3([FromQuery] GetAreaByLocationsParams searchParams)
-        {
-            double latitude = searchParams.latitude;
-            double longitude = searchParams.longitude;
 
-            string location = $"{latitude},{longitude}";
-            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(location);
-            foreach (byte b in bytes)
-            {
-                Console.WriteLine(b);
-            }
-            return System.Convert.ToBase64String(bytes);
+        [HttpGet("geohashv3")]
+        public async Task<ActionResult<string>> GetAreaByLocationsgeohash3([FromQuery] LocationPointDTO coordinates)
+        {
+            var locPoint = _mapper.Map<LocationPoint>(coordinates);
+            if (await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(locPoint)) return NotFound("There is no point with such coordinates");
+            var geoHasher = new Geohasher();
+            var geoHash = geoHasher.Encode(coordinates.Latitude, coordinates.Longitude, 12);
+            using System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create();
+            byte[] inputBytes = System.Text.Encoding.UTF8.GetBytes(geoHash);
+            byte[] hashBytes = md5.ComputeHash(inputBytes);
+            Array.Reverse(hashBytes);
+            return System.Convert.ToBase64String(hashBytes).ToString();
         }
 
 

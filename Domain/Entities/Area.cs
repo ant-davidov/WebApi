@@ -15,26 +15,18 @@ namespace Domain.Entities
 {
     public class Area
     {
-        private Polygon polygon;
-
         public long Id { get; set; }
         public string Name { get; set; }
         public ICollection<Coordinates> AreaPoints { get; set; }
         [JsonIgnore]
         public string PolygonString { get; set; }
-
         [NotMapped]
         [JsonIgnore]
         public Polygon Polygon
         {
             get
-            {
-                //var coordinates = AreaPoints.Select(p => new Coordinate(p.Latitude, p.Longitude)).ToList();
-                //coordinates.Add(coordinates[0]);
-                //return new Polygon(new LinearRing(coordinates.ToArray()));
+            {    
                 var reader = new WKTReader();
-
-                // преобразуем строку WKT в полигон
                 return reader.Read(PolygonString) as Polygon;
             }
             

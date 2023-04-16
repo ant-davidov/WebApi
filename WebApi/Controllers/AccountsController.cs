@@ -4,12 +4,8 @@ using Domain.DTOs;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
-using Infrastructure.Data.Hellpers.Extensions;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WebApi.Hellpers;
 using WebApi.Hellpers.Filter;
 
 namespace WebApi.Controllers
@@ -34,16 +30,11 @@ namespace WebApi.Controllers
         {
             var emailAuthorizedAccount = HttpContext.User.Identity.Name;
             if (emailAuthorizedAccount != null) return Forbid();
-            // registrationAccount.Email = _userManager.NormalizeEmail(registrationAccount.Email);
             if (!await _unitOfWork.AccountRepository.EmailIsFree(registrationAccount.Email)) return Conflict("Email is not free");
             var account = _mapper.Map<Account>(registrationAccount);
             var res = await _unitOfWork.AccountRepository.AddAccount(account, registrationAccount.Password);
             if (res.Succeeded)
-            {
-                await _unitOfWork.AccountRepository.AddRoleAsync(account, RoleEnum.USER.ToString());
                 return Created("./registration", _mapper.Map<AccountDTO>(account));
-            }
-
             else
                 return BadRequest(res.Errors.First());
         }
@@ -70,8 +61,7 @@ namespace WebApi.Controllers
 
         public async Task<ActionResult<AccountDTO>> Update(int? id, [FromBody] RegistrationDTO accountUpdate)
         {
-            try
-            {
+           
                 #region Validation
                 if (id == null || id <= 0) return BadRequest("Incorrect id");
                 var account = await _unitOfWork.AccountRepository.GetAccountAsync(id.Value);
@@ -87,12 +77,8 @@ namespace WebApi.Controllers
                     return Ok(_mapper.Map<AccountDTO>(account));
 
                 return BadRequest("Update Error");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message + " " + ex.ToString());
-            }
-
+          
+         
 
         }
         [CustomAuthorize(true)]
@@ -114,17 +100,12 @@ namespace WebApi.Controllers
         [CustomAuthorize(roles: nameof(RoleEnum.ADMIN))]
         public async Task<ActionResult<AccountDTO>> Accounts([FromBody] RegistrationDTO registrationAccount)
         {
-
             if (!await _unitOfWork.AccountRepository.EmailIsFree(registrationAccount.Email)) return Conflict("Email is not free");
             var newAccount = _mapper.Map<Account>(registrationAccount);
-            var res = await _unitOfWork.AccountRepository.AddAccount(newAccount, registrationAccount.Password);
-            await _unitOfWork.Complete();
-
-            if (res.Succeeded)
-            {
-                await _unitOfWork.AccountRepository.AddRoleAsync(newAccount, registrationAccount.Role.ToString());
-                return Created("./registration", _mapper.Map<AccountDTO>(newAccount));
-            }
+            var res = await _unitOfWork.AccountRepository.AddAccount(newAccount, registrationAccount.Password, registrationAccount.Role);
+            //await _unitOfWork.Complete();
+            if (res.Succeeded)       
+                return Created("./registration", _mapper.Map<AccountDTO>(newAccount));          
             else
                 return BadRequest(res.Errors.First());
         }

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 using Azure.Core.GeoJson;
-using Domain.CreatePage;
 using Domain.DTOs;
 using Domain.Entities;
 using Domain.Entities.Secondary;
@@ -50,7 +49,7 @@ namespace Infrastructure.Data
         }
         public async Task<bool> DoesIntersectWithExistingAreas(AreaDTO newArea, long id = 0)
         {
-            double distance = -0.001; // Расстояние для буфера
+            double distance = -0.001; 
             var areas = await _context.Areas.Include(a => a.AreaPoints).ToListAsync();
             var intersectingAreas = areas.Where(a => a.Id != id).Where(a => (a.Polygon.Buffer(distance)).Intersects(newArea.Polygon.Buffer(distance)));
             return intersectingAreas.Any();
@@ -72,14 +71,14 @@ namespace Infrastructure.Data
 
         }
 
-        public async Task<LocationPoint> GetAreaByLocations(GetAreaByLocationsParams searchParams)
+        public async Task<LocationPoint> GetAreaByLocations(LocationPointDTO searchParams)
         {
 
-            var allPoints = _context.LocationPoints
+            var allPoints = await _context.LocationPoints
                      .Select(l => new Coordinate(l.Latitude, l.Longitude))
-                     .ToList();
+                     .ToListAsync();
 
-            var searchPoint = new Coordinate(searchParams.latitude, searchParams.longitude);
+            var searchPoint = new Coordinate(searchParams.Latitude, searchParams.Longitude);
             double maxDistance = 0.5;
             var closestPoint = allPoints
                 .Where(p => p.Distance(searchPoint) <= maxDistance)

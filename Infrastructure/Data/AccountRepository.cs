@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using Domain;
 using Domain.DTOs;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -57,9 +58,16 @@ namespace Infrastructure.Data
             return await query.ProjectTo<AccountDTO>(_mapper.ConfigurationProvider).AsNoTracking().Skip(accountParams.From).Take(accountParams.Size).ToListAsync();
         }
 
-        public async Task<IdentityResult> AddAccount(Account account, string password)
+        public async Task<IdentityResult> AddAccount(Account account, string password, RoleEnum role = RoleEnum.USER)
         {
-            return await _userManager.CreateAsync(account, password);
+            var res =  await _userManager.CreateAsync(account, password);
+            if (res.Succeeded)
+            {
+                await AddRoleAsync(account, role.ToString());
+                return res;
+            }
+            else
+                return res;
         }
 
         public async Task<bool> EmailIsFree(string email)

@@ -6,6 +6,7 @@ using Domain.Entities;
 using Domain.Entities.Secondary;
 using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -16,18 +17,25 @@ namespace Infrastructure.Data.Seed
 
     public class SeedUsers
     {
-        public static async void Initialize(IServiceProvider serviceProvider)
+        private readonly RoleManager<ApplicationRole> _roleManager;
+        private readonly UserManager<Account> _userManager;
+        public SeedUsers(UserManager<Account> userManager, RoleManager<ApplicationRole> roleManager)
         {
-            var context = serviceProvider.GetRequiredService<DataContext>();
-            var userManager = serviceProvider.GetRequiredService<UserManager<Account>>();
-            var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+            _userManager = userManager;
+            _roleManager = roleManager;
+        }
+        public  async void Initialize()
+        {
+
+           
+            if (await _userManager.Users.AnyAsync()) return;
             var role1 = new ApplicationRole { Name = RoleEnum.ADMIN.ToString() };
             var role2 = new ApplicationRole { Name = RoleEnum.CHIPPER.ToString() };
             var role3 = new ApplicationRole { Name = RoleEnum.USER.ToString() };
-            await roleManager.CreateAsync(role1);
-            await roleManager.CreateAsync(role2);
-            await roleManager.CreateAsync(role3);
-            var a = roleManager.Roles.ToList();
+            await _roleManager.CreateAsync(role1);
+            await _roleManager.CreateAsync(role2);
+            await _roleManager.CreateAsync(role3);
+            var a = _roleManager.Roles.ToList();
             var user = new Account
             {
                 FirstName = "adminFirstName",
@@ -37,8 +45,8 @@ namespace Infrastructure.Data.Seed
 
             };
 
-            var result = await userManager.CreateAsync(user, "qwerty123");
-            await userManager.AddToRoleAsync(user, RoleEnum.ADMIN.ToString());
+            var result = await _userManager.CreateAsync(user, "qwerty123");
+            await _userManager.AddToRoleAsync(user, RoleEnum.ADMIN.ToString());
             var user2 = new Account
             {
                 FirstName = "chipperFirstName",
@@ -48,8 +56,8 @@ namespace Infrastructure.Data.Seed
 
             };
 
-            result = await userManager.CreateAsync(user2, "qwerty123");
-            await userManager.AddToRoleAsync(user2, RoleEnum.CHIPPER.ToString());
+            result = await _userManager.CreateAsync(user2, "qwerty123");
+            await _userManager.AddToRoleAsync(user2, RoleEnum.CHIPPER.ToString());
 
             var user3 = new Account
             {
@@ -59,8 +67,8 @@ namespace Infrastructure.Data.Seed
                 UserName = "user@simbirsoft.com"
             };
 
-            result = await userManager.CreateAsync(user3, "qwerty123");
-            await userManager.AddToRoleAsync(user3, RoleEnum.USER.ToString());
+            result = await _userManager.CreateAsync(user3, "qwerty123");
+            await _userManager.AddToRoleAsync(user3, RoleEnum.USER.ToString());
         }
     }
 }
