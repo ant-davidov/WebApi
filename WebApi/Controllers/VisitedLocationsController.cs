@@ -7,7 +7,7 @@ using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-
+using WebApi.Hellpers.Filter;
 
 namespace WebApi.Controllers
 {
@@ -28,21 +28,16 @@ namespace WebApi.Controllers
         [HttpGet("{id?}/locations")]
         public async Task<ActionResult<IEnumerable<AnimalVisitedLocation>>> Search(long? id, [FromQuery] VisitedLocationsParams locationsParams)
         {
-            try
-            {
-                if (id == null || id <= 0) return BadRequest("Invalid id");
-                var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
-                if (animal == null) return NotFound("Animal not found");
-                var dtos = await _unitOfWork.AnimalVisitedLocationRepository.GetAnimalVisitedLocationByParametersRepositoryAsync(id.Value, locationsParams);
-                return Ok(dtos);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message + " " + ex.ToString());
-            }
+
+            if (id == null || id <= 0) return BadRequest("Invalid id");
+            var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
+            if (animal == null) return NotFound("Animal not found");
+            var dtos = await _unitOfWork.AnimalVisitedLocationRepository.GetAnimalVisitedLocationByParametersRepositoryAsync(id.Value, locationsParams);
+            return Ok(dtos);
         }
 
         [HttpPost("{id?}/locations/{pointId?}")]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN) + ", " + nameof(RoleEnum.CHIPPER))]
         public async Task<ActionResult<AnimalVisitedLocationDTO>> Add(long? id, long? pointId)
         {
             #region Validation
@@ -50,7 +45,7 @@ namespace WebApi.Controllers
             //var emailAuthorizedAccount = HttpContext.User.Identity.Name;
             //var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
             ////if(authorizedAccount.Role == Domain.Enums.RoleEnum.USER) return Forbid();
-        
+
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (animal == null) return NotFound("Animal not found");
             if (LifeStatusEnum.DEAD == animal.LifeStatus) return BadRequest("Animal is dead");
@@ -61,7 +56,7 @@ namespace WebApi.Controllers
             if (lastVisitedPoint != null)
                 if (lastVisitedPoint.LocationPoint.Id == pointId) return BadRequest("Already here");
             var point = await _unitOfWork.LocationPointRepository.GetLocationPointAsync(pointId.Value);
-            if (null == point) return NotFound("Location point not found"); 
+            if (null == point) return NotFound("Location point not found");
             #endregion
             var visitedPoint = new AnimalVisitedLocation
             {
@@ -72,19 +67,20 @@ namespace WebApi.Controllers
             _unitOfWork.AnimalRepository.Update(animal);
             await _unitOfWork.Complete();
             var dto = _mapper.Map<AnimalVisitedLocationDTO>(visitedPoint);
-            return Created("/create",dto);
+            return Created("/create", dto);
         }
 
         [HttpPut("{id?}/locations")]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN) + ", " + nameof(RoleEnum.CHIPPER))]
         public async Task<ActionResult<AnimalVisitedLocationDTO>> Update(long? id, [FromBody] UpdateVisitedLoacationDTO updatePoint)
         {
 
             #region Validation
             if (id == null || id <= 0) return BadRequest("Invalid id");
-            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
-            //if(authorizedAccount.Role == Domain.Enums.RoleEnum.USER) return Forbid();
-        
+            //var emailAuthorizedAccount = HttpContext.User.Identity.Name;
+            //var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
+            ////if(authorizedAccount.Role == Domain.Enums.RoleEnum.USER) return Forbid();
+
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (animal == null) return NotFound("Animal not found");
             if (animal.VisitedLocations == null || animal.VisitedLocations?.Count() < 1) return BadRequest("Visited point is null");
@@ -103,26 +99,27 @@ namespace WebApi.Controllers
             // end
             var last = listVisitedLocations.LastOrDefault();
             if (last != null && last.LocationPoint.Id == updatePoint.locationPointId)
-                return BadRequest("Already here");       
+                return BadRequest("Already here");
             var localPoint = await _unitOfWork.LocationPointRepository.GetLocationPointAsync(updatePoint.locationPointId);
-            if (localPoint == null) return NotFound("Not found location point"); 
+            if (localPoint == null) return NotFound("Not found location point");
             #endregion
             visitedPoint.LocationPoint = localPoint;
             _unitOfWork.AnimalVisitedLocationRepository.UpdateAnimalVisitedLocationRepository(visitedPoint);
             await _unitOfWork.Complete();
             var dto = _mapper.Map<AnimalVisitedLocationDTO>(visitedPoint);
-            return dto; 
+            return dto;
         }
 
-         [HttpDelete("{id?}/locations/{visitedPointId?}")]
-         public async Task<ActionResult<AnimalVisitedLocation>> Delete (long? id, long? visitedPointId)
-         {
+        [HttpDelete("{id?}/locations/{visitedPointId?}")]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN))]
+        public async Task<ActionResult<AnimalVisitedLocation>> Delete(long? id, long? visitedPointId)
+        {
             #region Validation
             if (id == null || id <= 0 || visitedPointId == null || visitedPointId <= 0) return BadRequest();
             var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
+            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount);
             //if(authorizedAccount.Role != Domain.Enums.RoleEnum.ADMIN) return Forbid();
-        
+
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (null == animal) return NotFound("Animal not found");
             if (animal.VisitedLocations == null || animal.VisitedLocations?.Count() < 1) return BadRequest("Visited point is null");
@@ -131,12 +128,12 @@ namespace WebApi.Controllers
             animal.VisitedLocations.Remove(visitedPoint);
             var first = animal.VisitedLocations.FirstOrDefault();
             if (first != null && first.LocationPoint.Id == animal.ChippingLocation.Id)
-                animal.VisitedLocations.Remove(first);    
+                animal.VisitedLocations.Remove(first);
             #endregion
             _unitOfWork.AnimalRepository.Update(animal);
             await _unitOfWork.Complete();
             return Ok();
-         }
+        }
 
     }
 }

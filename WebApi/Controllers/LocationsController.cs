@@ -8,6 +8,8 @@ using Geohash;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using System.Collections;
+using Domain.Enums;
+using WebApi.Hellpers.Filter;
 
 namespace WebApi.Controllers
 {
@@ -33,12 +35,10 @@ namespace WebApi.Controllers
             return point;
         }
         [HttpPost]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN) + ", " + nameof(RoleEnum.CHIPPER))]
         public async Task<ActionResult<LocationPoint>> Add([FromBody] LocationPointDTO pointDTO)
         {
             var point = _mapper.Map<LocationPoint>(pointDTO);
-            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount);
-            //if(authorizedAccount.Role == Domain.Enums.RoleEnum.USER) return Forbid();
             if (!await _unitOfWork.LocationPointRepository.CheckCordinatesAsync(point)) return Conflict("Already have");
             _unitOfWork.LocationPointRepository.AddLocationPoint(point);
             await _unitOfWork.Complete();
@@ -46,12 +46,10 @@ namespace WebApi.Controllers
         }
 
         [HttpPut("{id?}")]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN) + ", " + nameof(RoleEnum.CHIPPER))]
         public async Task<ActionResult<LocationPoint>> Update(int? id, [FromBody] LocationPointDTO updatePoint)
         {
             if (id == null || id <= 0) return BadRequest("Incorrect id");
-            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount);
-            //if(authorizedAccount.Role == Domain.Enums.RoleEnum.USER) return Forbid();
             var point = await _unitOfWork.LocationPointRepository.GetLocationPointAsync(id.Value);
             if (null == point) return NotFound();
             var newPoint = _mapper.Map<LocationPoint>(updatePoint);
@@ -62,12 +60,10 @@ namespace WebApi.Controllers
             return point;
         }
         [HttpDelete("{id?}")]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN) + ", " + nameof(RoleEnum.CHIPPER))]
         public async Task<ActionResult> Delete(int? id)
         {
             if (id == null || id <= 0) return BadRequest("Incorrect id");
-            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount);
-            //if(authorizedAccount.Role != Domain.Enums.RoleEnum.ADMIN) return Forbid();
             var point = await _unitOfWork.LocationPointRepository.GetLocationPointAsync(id.Value);
             if (null == point) return NotFound();
             if (await _unitOfWork.LocationPointRepository.VisitedLocationExistAsync(point.Id)) return BadRequest("Have visited point");
@@ -92,9 +88,6 @@ namespace WebApi.Controllers
             return hasher.Encode(coordinates.Latitude, coordinates.Longitude, 12);
 
         }
-
-
-
 
         [HttpGet("geohashv2")]
         public async Task<ActionResult<string>> GetAreaByLocationsgeohash2([FromQuery] LocationPointDTO coordinates)

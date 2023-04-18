@@ -1,3 +1,4 @@
+using System.Data;
 using System.Net;
 using System.Security.Claims;
 using Domain.Entities;
@@ -11,9 +12,6 @@ using Microsoft.Identity.Client;
 
 namespace WebApi.Hellpers.Filter
 {
-
-
-
     public class CustomAuthorizeAttribute : Attribute, IAuthorizationFilter
     {
 
@@ -23,7 +21,7 @@ namespace WebApi.Hellpers.Filter
         public CustomAuthorizeAttribute(bool adminPrivileges = false, string mask = "id", string roles = null)
         {
             _adminPrivileges = adminPrivileges;
-            _mask = mask;
+            _mask = mask; //this is the name of a variable whose value must match the user id
             _roles = roles;
         }
 
@@ -45,7 +43,6 @@ namespace WebApi.Hellpers.Filter
                 }
             }
             var allowAnonymous = context.ActionDescriptor.EndpointMetadata.OfType<AllowAnonymousAttribute>().Any();
-            // if(context.HttpContext.Request.Method == "GET" && context.HttpContext.User.Identity.IsAuthenticated) return;
             var claim = context.HttpContext.User.Claims.FirstOrDefault();
             if (null == claim)
             {
@@ -62,9 +59,8 @@ namespace WebApi.Hellpers.Filter
         private static bool CheeckRole(string roles, AuthorizationFilterContext context)
         {
             if (roles == null) return true;
-            var a = roles.Split(',').Any(role => context.HttpContext.User.IsInRole(role.Trim()));
-            var roles2 = context.HttpContext.User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
-            return a;
+            var containsRole = roles.Split(',').Any(role => context.HttpContext.User.IsInRole(role.Trim()));
+            return containsRole;
         }
 
         private  static bool CheeckAdminPrivileges(AuthorizationFilterContext context, string mask)

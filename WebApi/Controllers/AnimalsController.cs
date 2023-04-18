@@ -43,7 +43,6 @@ namespace WebApi.Controllers
             var animals = await _unitOfWork.AnimalRepository.GetAnimalsWitsParamsAsync(animalParams);
             if (null == animals || animals.Count() < 1) return new List<ReturnAnimalDTO>();
             return Ok(animals);
-
         }
 
         [HttpPost]
@@ -106,8 +105,6 @@ namespace WebApi.Controllers
         [CustomAuthorize(roles: nameof(RoleEnum.ADMIN))]
         public async Task<ActionResult> Delete(int? id)
         {
-
-
             if (id == null || id <= 0) return BadRequest("Invalid id");
             var animal = await _unitOfWork.AnimalRepository.GetAnimalAsync(id.Value);
             if (null == animal) return NotFound("Animal not found");
@@ -116,9 +113,7 @@ namespace WebApi.Controllers
                 return BadRequest();
             _unitOfWork.AnimalRepository.DeleteAnimal(animal);
             await _unitOfWork.Complete();
-
             return Ok();
-
         }
 
         [HttpPost("{id?}/types/{typeId?}")]

@@ -10,6 +10,8 @@ using Domain.DTOs.Animal;
 using Microsoft.EntityFrameworkCore;
 using Domain.CreatePage;
 using Domain.Entities.Secondary;
+using Domain.Enums;
+using WebApi.Hellpers.Filter;
 
 namespace WebApi.Controllers
 {
@@ -33,57 +35,40 @@ namespace WebApi.Controllers
             if (point == null) return NotFound();
             return point;
         }
-        [AllowAnonymous]
         [HttpPost]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN))]
         public async Task<ActionResult<Area>> Add([FromBody] AreaDTO addAreaDTO)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
-                if (!addAreaDTO.Polygon.IsSimple) return BadRequest("ti peresek grannsu");
-                if (await _unitOfWork.AreaRepository.DoesIntersectWithExistingAreas(addAreaDTO)) return BadRequest("mishaet drugay zona");
-                if (await _unitOfWork.AreaRepository.CheckPolygonIntersectionAsync(addAreaDTO)) return BadRequest("you inside");
-                var area = _mapper.Map<Area>(addAreaDTO);
-                _unitOfWork.AreaRepository.AddArea(area);
-                await _unitOfWork.Complete();
-                return Created("url",area);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message +" " + ex.ToString());
-            }
-
+            //if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!addAreaDTO.Polygon.IsSimple) return BadRequest("non-convex polygon");
+            if (await _unitOfWork.AreaRepository.DoesIntersectWithExistingAreas(addAreaDTO)) return BadRequest("another zone interferes");
+            if (await _unitOfWork.AreaRepository.CheckPolygonIntersectionAsync(addAreaDTO)) return BadRequest("inside another zone");
+            var area = _mapper.Map<Area>(addAreaDTO);
+            _unitOfWork.AreaRepository.AddArea(area);
+            await _unitOfWork.Complete();
+            return Created("url", area);
         }
 
         [HttpPut("{id?}")]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN))]
         public async Task<ActionResult<ReturnAnimalDTO>> Update(int? id, [FromBody] AreaDTO addAreaDTO)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
-                if (!CheckingForConvexPolygon.IsConvexPolygon(addAreaDTO)) return BadRequest("ti peresek grannsu");
-                if (await _unitOfWork.AreaRepository.DoesIntersectWithExistingAreas(addAreaDTO,id.Value)) return BadRequest("mishaet drugay zona");
-                if (await _unitOfWork.AreaRepository.CheckPolygonIntersectionAsync(addAreaDTO,id.Value)) return BadRequest("you inside");
-                var area = await _unitOfWork.AreaRepository.GetAreaAsync(id.Value);
-                _unitOfWork.AreaRepository.Update(area);
-                await _unitOfWork.Complete();
-                return Ok( area);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message + " " + ex.ToString());
-            }
-
+            //if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!CheckingForConvexPolygon.IsConvexPolygon(addAreaDTO)) return BadRequest("non-convex polygon");
+            if (await _unitOfWork.AreaRepository.DoesIntersectWithExistingAreas(addAreaDTO, id.Value)) return BadRequest("another zone interferes");
+            if (await _unitOfWork.AreaRepository.CheckPolygonIntersectionAsync(addAreaDTO, id.Value)) return BadRequest("inside another zone");
+            var area = await _unitOfWork.AreaRepository.GetAreaAsync(id.Value);
+            _unitOfWork.AreaRepository.Update(area);
+            await _unitOfWork.Complete();
+            return Ok(area);
         }
 
 
         [HttpDelete("{id?}")]
-        [AllowAnonymous]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN))]
         public async Task<ActionResult> Delete(int? id)
         {
             if (id == null || id <= 0) return BadRequest("Invalid id");
-            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount);
             var area = await _unitOfWork.AreaRepository.GetAreaAsync(id.Value);
             if (null == area) return NotFound("Area not found");
             _unitOfWork.AreaRepository.DeleteArea(area);
@@ -92,21 +77,13 @@ namespace WebApi.Controllers
 
         }
         [HttpGet("{id?}/analytics")]
-        
+
         public async Task<ActionResult<AnalyticsResponse>> Analytics(long? id, [FromQuery] AnimalsAnalyticsParams searchParams)
         {
-            try
-            {
-                var r = await _unitOfWork.AnimalsAnalyticsRepository.GetAnalyticsAsync(id.Value, searchParams.StartDateTime, searchParams.EndDateTime);
-                return Ok(r);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message + " " + ex.ToString());
-            }
-
+            var res = await _unitOfWork.AnimalsAnalyticsRepository.GetAnalyticsAsync(id.Value, searchParams.StartDateTime, searchParams.EndDateTime);
+            return Ok(res);
         }
 
-       
+
     }
 }

@@ -4,7 +4,7 @@ namespace Domain.DTOs.Animal
     {
         private string chippingDateTime;
         public int Id { get; set; }
-        public List<int> AnimalTypes { get; set; }
+        public List<long> AnimalTypes { get; set; }
         public float Weight { get; set; }
         public float Length { get; set; }
         public float Height { get; set; }

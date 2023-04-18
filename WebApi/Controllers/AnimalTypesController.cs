@@ -4,6 +4,8 @@ using Domain.DTOs;
 using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Domain.Enums;
+using WebApi.Hellpers.Filter;
 
 namespace WebApi.Controllers
 {   
@@ -22,7 +24,7 @@ namespace WebApi.Controllers
 
 
         [HttpGet("{id?}")]
-        public async Task<ActionResult<AnimalTypeDTO>> GetById(int? id)
+        public async Task<ActionResult<AnimalTypeDTO>> GetById(long? id)
         {
             if (id == null || id <= 0) return BadRequest("Incorrect id");
             var type = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(id.Value);
@@ -30,12 +32,9 @@ namespace WebApi.Controllers
             return _mapper.Map<AnimalTypeDTO>(type) ;
         }
         [HttpPost]
-
-        
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN) + ", " + nameof(RoleEnum.CHIPPER))]
         public async Task<ActionResult<AnimalTypeDTO>> Add([FromBody] AnimalTypeDTO type)
         {
-            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
             if (await _unitOfWork.AnimalTypeRepository.GetAnimalTypeByTypeAsync(type.Type) != null) return Conflict("Already have");
             _unitOfWork.AnimalTypeRepository.AddAnimalType(_mapper.Map<AnimalType>(type));
             await _unitOfWork.Complete();   
@@ -43,12 +42,10 @@ namespace WebApi.Controllers
         }
 
         [HttpPut("{id?}")]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN) + ", " + nameof(RoleEnum.CHIPPER))]
         public async Task<ActionResult<AnimalTypeDTO>> Update(int? id,[FromBody] AnimalTypeDTO updateType)
         {
             if (id == null || id <= 0) return BadRequest("Incorrect id");
-            var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
-            //if(authorizedAccount.Role == Domain.Enums.RoleEnum.USER) return Forbid();
             var typeNow = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(id.Value);
             if (null == typeNow) return NotFound();
             if (typeNow.Type != updateType.Type)
@@ -60,13 +57,10 @@ namespace WebApi.Controllers
         }
 
         [HttpDelete("{id?}")]
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN))]
         public async Task<ActionResult> Delete(int? id)
         {
             if (id == null || id <= 0) return BadRequest("Incorrect id");
-            //var emailAuthorizedAccount = HttpContext.User.Identity.Name;
-            //var authorizedAccount = await _userManager.FindByEmailAsync(emailAuthorizedAccount); 
-            //if(authorizedAccount.Role != Domain.Enums.RoleEnum.ADMIN) return Forbid();
-        
             var type = await _unitOfWork.AnimalTypeRepository.GetAnimalTypeAsync(id.Value);
             if (null == type) return NotFound();
             if(await _unitOfWork.AnimalTypeRepository.AnimalsExistAsync(type.Id)) return  BadRequest("There are animals");

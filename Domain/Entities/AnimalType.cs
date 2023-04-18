@@ -9,7 +9,7 @@ namespace Domain.Entities
         private string type;
 
         [Key]
-        public int Id { get; set; }
+        public long Id { get; set; }
         [Required(AllowEmptyStrings = false)]
         public string Type { get => type; set => type = value?.ToLower().Trim(); }
         [JsonIgnore]

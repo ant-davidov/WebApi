@@ -22,8 +22,7 @@ namespace WebApi.Hellpers.Filter
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
            try 
-           {
-               
+           {            
                 var header = Request.Headers["Authorization"];
                 if (header.Count == 0)
                     return CreateAnonymousTicket();

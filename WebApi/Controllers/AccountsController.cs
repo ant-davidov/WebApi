@@ -38,7 +38,7 @@ namespace WebApi.Controllers
             else
                 return BadRequest(res.Errors.First());
         }
-
+        [CustomAuthorize(roles: nameof(RoleEnum.ADMIN))]
         [HttpGet("[action]")]
         public async Task<ActionResult<IEnumerable<AccountDTO>>> Search([FromQuery] AccountParams accountParams)
         {
@@ -56,7 +56,7 @@ namespace WebApi.Controllers
             return _mapper.Map<AccountDTO>(searchAccount);
         }
 
-        [CustomAuthorize]
+        [CustomAuthorize(true)]
         [HttpPut("{id?}")]
 
         public async Task<ActionResult<AccountDTO>> Update(int? id, [FromBody] RegistrationDTO accountUpdate)
@@ -78,8 +78,6 @@ namespace WebApi.Controllers
 
                 return BadRequest("Update Error");
           
-         
-
         }
         [CustomAuthorize(true)]
         [HttpDelete("{id?}")]
@@ -103,7 +101,6 @@ namespace WebApi.Controllers
             if (!await _unitOfWork.AccountRepository.EmailIsFree(registrationAccount.Email)) return Conflict("Email is not free");
             var newAccount = _mapper.Map<Account>(registrationAccount);
             var res = await _unitOfWork.AccountRepository.AddAccount(newAccount, registrationAccount.Password, registrationAccount.Role);
-            //await _unitOfWork.Complete();
             if (res.Succeeded)       
                 return Created("./registration", _mapper.Map<AccountDTO>(newAccount));          
             else
